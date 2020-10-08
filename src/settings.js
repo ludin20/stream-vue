@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Test Fake System',
+  title: 'Neurotrack',
 
   /**
    * @type {boolean} true | false

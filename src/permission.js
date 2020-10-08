@@ -8,7 +8,7 @@ import getPageTitle from '@/utils/get-page-title'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/login'] // no redirect whitelist
+const whiteList = ['/camera'] // no redirect whitelist
 
 router.beforeEach(async(to, from, next) => {
   NProgress.start()
@@ -16,7 +16,7 @@ router.beforeEach(async(to, from, next) => {
   document.title = getPageTitle(to.meta.title)
   const hasToken = getToken()
   if (hasToken) {
-    if (to.path === '/login') {
+    if (to.path === '/camera') {
       next({ path: '/' })
       NProgress.done()
     } else {
@@ -31,7 +31,7 @@ router.beforeEach(async(to, from, next) => {
         } catch (error) {
           await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
+          next(`/camera?redirect=${to.path}`)
           NProgress.done()
         }
       }
@@ -40,7 +40,7 @@ router.beforeEach(async(to, from, next) => {
     if (whiteList.indexOf(to.path) !== -1) {
       next()
     } else {
-      next(`/login?redirect=${to.path}`)
+      next(`/camera?redirect=${to.path}`)
       NProgress.done()
     }
   }

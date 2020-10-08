@@ -1,6 +1,6 @@
 import defaultSettings from '@/settings'
 
-const title = defaultSettings.title || 'Test Fake System'
+const title = defaultSettings.title || 'Neurotrack'
 
 export default function getPageTitle(pageTitle) {
   if (pageTitle) {

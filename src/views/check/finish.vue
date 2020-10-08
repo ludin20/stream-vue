@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-form ref="form" :model="form">
       <el-form-item>
-        <img src="../../assets/404_images/404.png" style="width: 50px; height:50px; border: 1px solid black">
+        <img src="../../assets/Logo.png" style="width: 50px; height:50px;">
         <el-col :span="24">
           <h1 class="title" style="text-align: center; margin-top: 100px; font-size: 45px">Thank you!</h1>
         </el-col>
