@@ -2,19 +2,19 @@
   <div class="app-container">
     <el-form ref="form" :model="form">
       <el-form-item>
-        <img src="../../assets/Logo.png" style="width: 50px; height:50px;">
+        <img class="logo" src="../../assets/Logo.png">
         <el-col :span="24">
-          <h1 class="title" style="text-align: center; margin-top: 100px; font-size: 45px">Thank you!</h1>
+          <h1 class="title">Thank you!</h1>
         </el-col>
       </el-form-item>
       <el-form-item>
         <el-col :span="24">
-          <h5 class="title" style="text-align: center; margin-top: 60px; font-size: 20px">That exam is done, and the results have been posted to the server</h5>
+          <h5 class="title1">That exam is done, and the results have been posted to the server</h5>
         </el-col>
       </el-form-item>
       <el-form-item>
         <el-col :span="24">
-          <h5 class="title" style="text-align: center; margin-top: 60px; font-size: 20px">This is your session ID:</h5>
+          <h5 class="title2">This is your session ID:</h5>
         </el-col>
         
       </el-form-item>
@@ -28,6 +28,7 @@
               placeholder="Session ID"
               tabindex="1"
               auto-complete="on"
+              v-model="form.sessionId"
               disabled
             />
           </el-col>
@@ -48,6 +49,7 @@ export default {
   data() {
     return {
       form: {
+        sessionId: localStorage.getItem("sessionId")
       }
     }
   },
@@ -61,8 +63,27 @@ export default {
 </script>
 
 <style scoped>
-.line{
-  text-align: center;
+.logo {
+  width: 50px; 
+  height:50px;
+}
+
+.title {
+  text-align: center; 
+  margin-top: 100px; 
+  font-size: 45px;
+}
+
+.title1 {
+  text-align: center; 
+  margin-top: 60px; 
+  font-size: 20px;
+}
+
+.title2 {
+  text-align: center; 
+  margin-top: 60px; 
+  font-size: 20px;
 }
 </style>
 

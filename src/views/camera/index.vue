@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left" :loading="true">
+    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
       <el-form-item>
-        <img src="../../assets/Logo.png" style="width: 50px; height:50px;">
+        <img class="logo" src="../../assets/Logo.png">
         <el-col :span="24">
-          <h3 class="title" style="text-align: center; margin-top: 100px; font-size: 26px">Real Time Video Test</h3>
+          <h3 class="title" style="">Real Time Video Test</h3>
         </el-col>
       </el-form-item>
 
@@ -49,9 +49,9 @@
           </el-form-item>
         </el-col>
         <el-col :span="2">.</el-col>
-        <el-col :span="5" :loading="true">
-          <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted />
-          <video id="remove-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted hidden/>
+        <el-col :span="5">
+          <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted hidden/>
+          <video id="remove-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted/>
         </el-col>
       </el-form-item>
 
@@ -86,7 +86,9 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import { startMaster } from '@/utils/master'
-// import { startViewer } from '@/utils/viewer'
+import { startViewer } from '@/utils/viewer'
+import { SERVER_URL } from '@/config/config'
+import axios from 'axios';
 
 export default {
   name: 'Login',
@@ -113,6 +115,7 @@ export default {
       }
     }
     return {
+      server_url: SERVER_URL,
       loginForm: {
         username: 'admin',
         password: '111111',
@@ -148,11 +151,20 @@ export default {
       })
     },
     handleStart() {
+
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: '/check' })
+            axios.post(this.server_url+'/session', {"email": this.loginForm.email}, {}).then (response => {
+              if (response.status === 200 ) {
+                localStorage.setItem("email", response.data.returnData.email)
+                localStorage.setItem("sessionId", response.data.returnData.sessionId)
+                this.$router.push({ path: '/check' })
+              } else {
+                alert(response.data.userMessage)
+              }
+            })
             this.loading = false
           }).catch(() => {
             this.loading = false
@@ -201,11 +213,11 @@ export default {
       const localView = document.getElementById('local-view')
       const remoteView = document.getElementById('remote-view')
       const formValues = this.getFormValues()
-      startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-      })
+      // startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
+      // })
 
-      // startViewer(localView, remoteView, formValues, this.onStatsReport, event => {
-      // });
+      startViewer(localView, remoteView, formValues, this.onStatsReport, event => {
+      })
     }
   },
   mounted: function () {
@@ -215,3 +227,17 @@ export default {
   }
 }
 </script>
+<style scoped>
+.logo {
+  width: 50px; 
+  height:50px;
+}
+
+.title {
+  text-align: center; 
+  margin-top: 100px; 
+  font-size: 26px;
+}
+
+</style>
+

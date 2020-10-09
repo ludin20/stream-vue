@@ -1,0 +1,1 @@
+export const SERVER_URL = "https://nvixx98sn4.execute-api.us-east-1.amazonaws.com/dev";
