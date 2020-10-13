@@ -50,8 +50,8 @@
         </el-col>
         <el-col :span="2">.</el-col>
         <el-col :span="5">
-          <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted hidden/>
-          <video id="remove-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted/>
+          <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted/>
+          <video id="remove-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted hidden />
         </el-col>
       </el-form-item>
 
@@ -213,11 +213,11 @@ export default {
       const localView = document.getElementById('local-view')
       const remoteView = document.getElementById('remote-view')
       const formValues = this.getFormValues()
-      // startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-      // })
-
-      startViewer(localView, remoteView, formValues, this.onStatsReport, event => {
+      startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
       })
+
+      // startViewer(localView, remoteView, formValues, this.onStatsReport, event => {
+      // })
     }
   },
   mounted: function () {
