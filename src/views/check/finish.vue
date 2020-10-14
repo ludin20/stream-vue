@@ -45,6 +45,10 @@
 </template>
 
 <script>
+import { validUsername } from '@/utils/validate'
+import { stopMaster } from '@/utils/master'
+import { SERVER_URL } from '@/config/config'
+import axios from 'axios';
 export default {
   data() {
     return {
@@ -55,9 +59,13 @@ export default {
   },
   methods: {
     async onCancel() {
+      localStorage.clear()
       await this.$store.dispatch('user/logout');
       this.$router.push({ path: '/login'});
     }
+  },
+  created() {
+    stopMaster()
   }
 }
 </script>

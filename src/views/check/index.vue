@@ -31,6 +31,7 @@
 
 <script>
 import axios from 'axios'
+import { stopMaster } from '@/utils/master'
 import { SERVER_URL } from '@/config/config'
 export default {
   data() {
@@ -55,11 +56,12 @@ export default {
   },
   methods: {
     async onCancel() {
-      await this.$store.dispatch('user/logout');
-      this.$router.push({ path: '/login' });
+      stopMaster()
+      localStorage.clear()
+      await this.$store.dispatch('user/logout')
+      this.$router.push({ path: '/login' })
     },
     getLeftImages() {
-      this.examStart = Date.now()
       this.times.push(Date.now())
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcLeft = response.request.responseURL
@@ -81,8 +83,8 @@ export default {
       this.idx ++;
       if (this.idx == 6) {
         this.examEnd = Date.now()
-        clearInterval(this.timerLeft);
-        clearInterval(this.timerRight);
+        clearInterval(this.timerLeft)
+        clearInterval(this.timerRight)
         this.getData();
       }
     },
@@ -91,8 +93,8 @@ export default {
       for (i = 0; i < this.times.length - 1; i ++) {
         this.trial.trialStart = this.times[i]
         this.trial.trialEnd = this.times[i + 1]
-        this.trials.push(this.trial);
-        this.trial = {};
+        this.trials.push(this.trial)
+        this.trial = {}
       }
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
@@ -117,14 +119,16 @@ export default {
   },
   created() {
     let self = this;
+    this.examStart = Date.now()
+    let trial = localStorage.getItem("trial")
     self.timerLeft = setInterval(function(){ 
-      self.getLeftImages();
-      self.getCurrentTimeStamp();
-    }, 4000);
+      self.getLeftImages()
+      self.getCurrentTimeStamp()
+    }, trial * 1000);
 
     self.timerRight = setInterval(function(){ 
-      self.getRightImages();
-    }, 4000);
+      self.getRightImages()
+    }, trial * 1000);
   }
 }
 </script>

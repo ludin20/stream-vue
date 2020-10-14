@@ -40,6 +40,16 @@
               tabindex="1"
               auto-complete="on"
             />
+            <el-input
+              style="margin-top: 10px"
+              ref="trial"
+              v-model="loginForm.trial"
+              placeholder="Trial Length"
+              name="trial"
+              type="number"
+              tabindex="1"
+              auto-complete="on"
+            />
           </el-form-item>
           <el-form-item>
             <el-col :span="10">.</el-col>
@@ -86,7 +96,6 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import { startMaster } from '@/utils/master'
-import { startViewer } from '@/utils/viewer'
 import { SERVER_URL } from '@/config/config'
 import axios from 'axios';
 
@@ -119,7 +128,8 @@ export default {
       loginForm: {
         username: 'admin',
         password: '111111',
-        email: ''
+        email: '',
+        trial: 4
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -160,6 +170,7 @@ export default {
               if (response.status === 200 ) {
                 localStorage.setItem("email", response.data.returnData.email)
                 localStorage.setItem("sessionId", response.data.returnData.sessionId)
+                localStorage.setItem("trial", this.loginForm.trial)
                 this.$router.push({ path: '/check' })
               } else {
                 alert(response.data.userMessage)
@@ -215,9 +226,6 @@ export default {
       const formValues = this.getFormValues()
       startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
       })
-
-      // startViewer(localView, remoteView, formValues, this.onStatsReport, event => {
-      // })
     }
   },
   mounted: function () {
