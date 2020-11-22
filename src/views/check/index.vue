@@ -8,7 +8,7 @@
           <h3 class="title">Focus On The Picture You Prefer</h3>
         </el-col>
       </el-form-item>
-        
+      <span>{{this.idx}}</span>
       <el-form-item>
         <el-col :span="11">
           <transition name="fade">
@@ -31,13 +31,15 @@
 
 <script>
 import axios from 'axios'
-import { stopMaster } from '@/utils/master'
-import { SERVER_URL } from '@/config/config'
+import { stopMaster, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue } from '@/utils/master'
+import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
 export default {
   data() {
     return {
       sessionId: localStorage.getItem("sessionId"),
       server_url: SERVER_URL,
+      stream_config_url: STREAM_CONFIG_URL,
+      session_url: SESSION_URL,
       form: {},
       mainImageSrcLeft: '',
       mainImageSrcRight: '',
@@ -46,6 +48,7 @@ export default {
       idx: 0,
       timerLeft: null,
       timerRight: null,
+      timer: null,
       examStart: 0,
       examEnd: 0,
       times: [],
@@ -61,6 +64,7 @@ export default {
       await this.$store.dispatch('user/logout')
       this.$router.push({ path: '/login' })
     },
+    
     getLeftImages() {
       this.times.push(Date.now())
       axios.get('https://picsum.photos/400').then (response => {
@@ -81,11 +85,29 @@ export default {
     },
     getCurrentTimeStamp() {
       this.idx ++;
-      if (this.idx == 6) {
+      if (this.idx == 1) 
+        this.examStart = Date.now()
+      else if (this.idx == 5)
         this.examEnd = Date.now()
+        
+      if (this.idx == 6) {
         clearInterval(this.timerLeft)
         clearInterval(this.timerRight)
-        this.getData();
+        this.examFinish();
+      }
+    },
+    examFinish() {
+      sendExamFinishSignal()
+      var self = this
+      this.timer = setInterval(function(){ 
+        self.checkMessage()
+      }, 500);
+    },
+    checkMessage() {
+      var result = getStreamEndStatusValue()
+      if (result) {
+        clearInterval(this.timer)
+        this.getData()
       }
     },
     getData() {
@@ -104,9 +126,32 @@ export default {
           "trials" : this.trials
         }
       }
+      var self = this;
 
-      axios.put(this.server_url+'/session/'+this.sessionId, param).then (response => {
+      setTimeout(function(){ 
+        axios.put(self.server_url+'/session/'+self.sessionId, param).then (response => {
+          if (response.status === 200 ) {
+            var result = getTimeRange()
+            self.getVideoClip(result.startTime, +result.endTime + +15000)
+          } else {
+            alert(response.data.userMessage)
+          }
+        });
+      }, 15000);
+    },
+    getVideoClip(startTime, endTime) {
+      console.log(startTime, "", endTime)
+      let param = {
+        "streamName": localStorage.getItem("streamName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "sessionId": localStorage.getItem("sessionId"),
+        "StartTimestamp" : startTime,
+        "EndTimestamp" : endTime
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId, param).then (response => {
         if (response.status === 200 ) {
+          clearInterval(this.timer)
           this.$router.push({ path: '/finish' })
         } else {
           alert(response.data.userMessage)
@@ -114,12 +159,13 @@ export default {
       });
     }
   },
+  
   mounted: function () {
     
   },
   created() {
     let self = this;
-    this.examStart = Date.now()
+
     let trial = localStorage.getItem("trial")
     self.timerLeft = setInterval(function(){ 
       self.getLeftImages()

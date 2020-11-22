@@ -10,10 +10,13 @@ const master = {
 	peerConnectionStatsInterval: null,
 }
 
+var isStreamStart = false, isStreamEnd = false
+var remoteSenderClientId = ""
+var startTime = 0, endTime = 0
+
 export async function startMaster(localView, remoteView, formValues, onStatsReport, onRemoteDataMessage) {
     master.localView = localView
     master.remoteView = remoteView
-
     // Create KVS client
     const kinesisVideoClient = new AWS.KinesisVideo({
         region: formValues.region,
@@ -31,7 +34,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         })
         .promise()
     const channelARN = describeSignalingChannelResponse.ChannelInfo.ChannelARN
-    console.log('[MASTER] Channel ARN: ', channelARN)
+    // console.log('[MASTER] Channel ARN: ', channelARN)
 
     // Get signaling channel endpoints
     const getSignalingChannelEndpointResponse = await kinesisVideoClient
@@ -47,7 +50,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         endpoints[endpoint.Protocol] = endpoint.ResourceEndpoint
         return endpoints
     }, {})
-    console.log('[MASTER] Endpoints: ', endpointsByProtocol)
+    // console.log('[MASTER] Endpoints: ', endpointsByProtocol)
 
     // Create Signaling Client
     // master.signalingClient = new KVSWebRTC.SignalingClient({
@@ -91,7 +94,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
             }),
         )
     }
-    console.log('[MASTER] ICE servers: ', iceServers)
+    // console.log('[MASTER] ICE servers: ', iceServers)
 
     const configuration = {
         iceServers,
@@ -117,11 +120,24 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
     }
 
     master.signalingClient.on('open', async () => {
-        console.log('[MASTER] Connected to signaling service')
+        // console.log('[MASTER] Connected to signaling service')
     })
 
     master.signalingClient.on('sdpOffer', async (offer, remoteClientId) => {
-        console.log('[MASTER] Received SDP offer from client: ' + remoteClientId)
+        remoteSenderClientId = remoteClientId
+        if (offer.type == "streamStart") {
+            isStreamStart = true;
+            return;
+        }
+
+        if (offer.type == "streamEnd") {
+            isStreamEnd = true
+            startTime = offer.startTime
+            endTime = offer.endTime
+            return;
+        }
+
+        // console.log('[MASTER] Received SDP offer from client: ' + remoteClientId)
 
         // Create a new peer connection using the offer from the given client
         const peerConnection = new RTCPeerConnection(configuration)
@@ -142,18 +158,18 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         // Send any ICE candidates to the other peer
         peerConnection.addEventListener('icecandidate', ({ candidate }) => {
             if (candidate) {
-                console.log('[MASTER] Generated ICE candidate for client: ' + remoteClientId)
+                // console.log('[MASTER] Generated ICE candidate for client: ' + remoteClientId)
 
                 // When trickle ICE is enabled, send the ICE candidates as they are generated.
                 if (formValues.useTrickleICE) {
-                    console.log('[MASTER] Sending ICE candidate to client: ' + remoteClientId)
+                    // console.log('[MASTER] Sending ICE candidate to client: ' + remoteClientId)
                     master.signalingClient.sendIceCandidate(candidate, remoteClientId)
                 }
             } else {
-                console.log('[MASTER] All ICE candidates have been generated for client: ' + remoteClientId)
+                // console.log('[MASTER] All ICE candidates have been generated for client: ' + remoteClientId)
                 // When trickle ICE is disabled, send the answer now that all the ICE candidates have ben generated.
                 if (!formValues.useTrickleICE) {
-                    console.log('[MASTER] Sending SDP answer to client: ' + remoteClientId)
+                    // console.log('[MASTER] Sending SDP answer to client: ' + remoteClientId)
                     master.signalingClient.sendSdpAnswer(peerConnection.localDescription, remoteClientId)
                 }
             }
@@ -161,7 +177,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
 
         // As remote tracks are received, add them to the remote view
         peerConnection.addEventListener('track', event => {
-            console.log('[MASTER] Received remote track from client: ' + remoteClientId)
+            // console.log('[MASTER] Received remote track from client: ' + remoteClientId)
             if (remoteView.srcObject) {
                 return
             }
@@ -175,7 +191,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         await peerConnection.setRemoteDescription(offer)
 
         // Create an SDP answer to send back to the client
-        console.log('[MASTER] Creating SDP answer for client: ' + remoteClientId)
+        // console.log('[MASTER] Creating SDP answer for client: ' + remoteClientId)
         await peerConnection.setLocalDescription(
             await peerConnection.createAnswer({
                 offerToReceiveAudio: true,
@@ -185,14 +201,14 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
 
         // When trickle ICE is enabled, send the answer now and then send ICE candidates as they are generated. Otherwise wait on the ICE candidates.
         if (formValues.useTrickleICE) {
-            console.log('[MASTER] Sending SDP answer to client: ' + remoteClientId)
+            // console.log('[MASTER] Sending SDP answer to client: ' + remoteClientId)
             master.signalingClient.sendSdpAnswer(peerConnection.localDescription, remoteClientId)
         }
-        console.log('[MASTER] Generating ICE candidates for client: ' + remoteClientId)
+        // console.log('[MASTER] Generating ICE candidates for client: ' + remoteClientId)
     })
 
     master.signalingClient.on('iceCandidate', async (candidate, remoteClientId) => {
-        console.log('[MASTER] Received ICE candidate from client: ' + remoteClientId)
+        // console.log('[MASTER] Received ICE candidate from client: ' + remoteClientId)
 
         // Add the ICE candidate received from the client to the peer connection
         const peerConnection = master.peerConnectionByClientId[remoteClientId]
@@ -200,19 +216,19 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
     })
 
     master.signalingClient.on('close', () => {
-        console.log('[MASTER] Disconnected from signaling channel')
+        // console.log('[MASTER] Disconnected from signaling channel')
     })
 
     master.signalingClient.on('error', () => {
         console.error('[MASTER] Signaling client error')
     })
 
-    console.log('[MASTER] Starting master connection')
+    // console.log('[MASTER] Starting master connection')
     master.signalingClient.open()
 }
 
 export function stopMaster() {
-    console.log('[MASTER] Stopping master connection')
+    // console.log('[MASTER] Stopping master connection')
     if (master.signalingClient) {
         master.signalingClient.close()
         master.signalingClient = null
@@ -257,4 +273,30 @@ export function sendMasterMessage(message) {
             console.error('[MASTER] Send DataChannel: ', e.toString())
         }
     })
+}
+
+export function getStreamStatusValue() {
+    return isStreamStart
+}
+
+export function getStreamEndStatusValue() {
+    return isStreamEnd
+}
+
+export function sendExamFinishSignal() {
+    var message = {
+        type: "examFinish",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
+export function getTimeRange() {
+    var timeRange = {
+        startTime: startTime,
+        endTime: endTime
+    }
+    return timeRange
 }

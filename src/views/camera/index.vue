@@ -95,8 +95,8 @@
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
-import { startMaster } from '@/utils/master'
-import { SERVER_URL } from '@/config/config'
+import { startMaster, getStreamStatusValue } from '@/utils/master'
+import { SERVER_URL, STREAM_CONFIG_URL } from '@/config/config'
 import axios from 'axios';
 
 export default {
@@ -125,6 +125,7 @@ export default {
     }
     return {
       server_url: SERVER_URL,
+      stream_config_url: STREAM_CONFIG_URL,
       loginForm: {
         username: 'admin',
         password: '111111',
@@ -137,8 +138,12 @@ export default {
         email: [{ required: true, trigger: 'blur', validator: validateEmail }]
       },
       loading: false,
+      channelName: 'eriks',
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      sqsMessage: false,
+      timer: null,
+      masterVal: null
     }
   },
   watch: {
@@ -161,22 +166,36 @@ export default {
       })
     },
     handleStart() {
-
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm).then(() => {
-            axios.post(this.server_url+'/session', {"email": this.loginForm.email}, {}).then (response => {
+            axios.get(this.stream_config_url+'/streamConfig').then (response => {
               if (response.status === 200 ) {
-                localStorage.setItem("email", response.data.returnData.email)
-                localStorage.setItem("sessionId", response.data.returnData.sessionId)
-                localStorage.setItem("trial", this.loginForm.trial)
-                this.$router.push({ path: '/check' })
+                var streamARN = response.data.returnData.streamARN
+                var streamBuf = streamARN.split("/")[1]
+                var kvsName = streamBuf.split("/")[0]
+
+                var signalChannelARN = response.data.returnData.signalChannelARN
+                var signalBuf = signalChannelARN.split("/")[1]
+                var signalName = signalBuf.split("/")[0]
+
+                this.channelName = signalName
+
+                localStorage.setItem("streamName", kvsName)
+                localStorage.setItem("signalChannelName", signalName)
+                localStorage.setItem("streamARN", streamARN)
+
+                const localView = document.getElementById('local-view')
+                const remoteView = document.getElementById('remote-view')
+                const formValues = this.getFormValues()
+                startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
+                })
+                this.createSession()
               } else {
                 alert(response.data.userMessage)
               }
             })
-            this.loading = false
           }).catch(() => {
             this.loading = false
           })
@@ -184,6 +203,36 @@ export default {
           return false
         }
       })
+    },
+    createSession() {
+      let param = {
+        "email" : this.loginForm.email,
+        "streamName": localStorage.getItem("streamName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+      }
+      
+      axios.post(this.server_url+'/session', param, {}).then (response => {
+        if (response.status === 200 ) {
+          localStorage.setItem("email", response.data.returnData.email)
+          localStorage.setItem("sessionId", response.data.returnData.sessionId)
+          localStorage.setItem("trial", this.loginForm.trial)
+
+          var self = this
+          this.timer = setInterval(function(){ 
+            self.checkMessage()
+          }, 500);
+        } else {
+          alert(response.data.userMessage)
+        }
+      })
+    },
+    checkMessage() {
+      var status = getStreamStatusValue();
+      if (status) {
+        clearInterval(this.timer)
+        this.loading = false 
+        this.$router.push({ path: '/check' })  
+      }
     },
     onStatsReport(report) {
       // TODO: Publish stats
@@ -204,7 +253,7 @@ export default {
     getFormValues() {
       return {
         region: 'us-east-1',
-        channelName: 'eriks',
+        channelName: this.channelName,
         clientId: this.getRandomClientId(),
         sendVideo: true,
         sendAudio: false,
@@ -229,7 +278,7 @@ export default {
     }
   },
   mounted: function () {
-    this.getPermissionCamera()
+    // this.getPermissionCamera()
   },
   created() {
   }

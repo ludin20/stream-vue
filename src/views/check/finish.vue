@@ -16,7 +16,6 @@
         <el-col :span="24">
           <h5 class="title2">This is your session ID:</h5>
         </el-col>
-        
       </el-form-item>
       <el-form-item>
         <el-col :span="10">.</el-col>
@@ -37,7 +36,7 @@
         
       <el-form-item>
         <el-col :span="24" style="text-align: center;">
-          <el-button @click="onCancel">BACK TO START</el-button> 
+          <el-button :loading="loading" @click="onCancel">BACK TO START</el-button> 
         </el-col>
       </el-form-item>
     </el-form>
@@ -52,6 +51,7 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      loading: false,
       form: {
         sessionId: localStorage.getItem("sessionId")
       }
@@ -60,10 +60,11 @@ export default {
   methods: {
     async onCancel() {
       localStorage.clear()
-      await this.$store.dispatch('user/logout');
-      this.$router.push({ path: '/login'});
+      await this.$store.dispatch('user/logout')
+      this.$router.push({ path: '/login'})
     }
   },
+
   created() {
     stopMaster()
   }
