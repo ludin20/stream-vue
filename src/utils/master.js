@@ -12,7 +12,7 @@ const master = {
 
 var isStreamStart = false, isStreamEnd = false
 var remoteSenderClientId = ""
-var startTime = 0, endTime = 0
+var startTime = 0, endTime = 0, secondTime = 0, thirdTime = 0, fourthTime = 0
 
 export async function startMaster(localView, remoteView, formValues, onStatsReport, onRemoteDataMessage) {
     master.localView = localView
@@ -133,6 +133,9 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         if (offer.type == "streamEnd") {
             isStreamEnd = true
             startTime = offer.startTime
+            secondTime = offer.secondTime
+            thirdTime = offer.thirdTime
+            fourthTime = offer.fourthTime
             endTime = offer.endTime
             return;
         }
@@ -283,6 +286,46 @@ export function getStreamEndStatusValue() {
     return isStreamEnd
 }
 
+export function sendExamStartSignal() {
+    var message = {
+        type: "examStart",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
+export function sendExamSecondSignal() {
+    var message = {
+        type: "examSecond",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
+export function sendExamThirdSignal() {
+    var message = {
+        type: "examThird",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
+export function sendExamFourthSignal() {
+    var message = {
+        type: "examFourth",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
 export function sendExamFinishSignal() {
     var message = {
         type: "examFinish",
@@ -299,4 +342,15 @@ export function getTimeRange() {
         endTime: endTime
     }
     return timeRange
+}
+
+export function getStreamTimes() {
+    var result = [];
+    result[0] = startTime
+    result[1] = secondTime
+    result[2] = thirdTime
+    result[3] = fourthTime
+    result[4] = endTime
+
+    return result
 }

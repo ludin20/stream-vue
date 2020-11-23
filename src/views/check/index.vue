@@ -8,7 +8,7 @@
           <h3 class="title">Focus On The Picture You Prefer</h3>
         </el-col>
       </el-form-item>
-      <span>{{this.idx}}</span>
+      
       <el-form-item>
         <el-col :span="11">
           <transition name="fade">
@@ -16,6 +16,7 @@
           </transition>
           <video poster="../../assets/loading.gif" class="leftvideo" v-if="mainImageSrcLeft==''"></video>
         </el-col>
+        
         <el-col :span="2" class="line">.</el-col>
         <el-col :span="11">
           <video poster="../../assets/loading.gif" class="rightvideo" v-show="mainImageSrcRight==''"></video>
@@ -26,12 +27,11 @@
       </el-form-item>
     </el-form>
   </div>
-  
 </template>
 
 <script>
 import axios from 'axios'
-import { stopMaster, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue } from '@/utils/master'
+import { stopMaster, sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue, getStreamTimes } from '@/utils/master'
 import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
 export default {
   data() {
@@ -49,8 +49,6 @@ export default {
       timerLeft: null,
       timerRight: null,
       timer: null,
-      examStart: 0,
-      examEnd: 0,
       times: [],
       trials: [],
       trial: {},
@@ -66,38 +64,40 @@ export default {
     },
     
     getLeftImages() {
-      this.times.push(Date.now())
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcLeft = response.request.responseURL
       })
     },
     getRightImages() {
+      this.idx ++;
       this.isLoaded = false;
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcRight = response.request.responseURL
 
         this.mainImageSrcRight = this.tempmainImageSrcRight
         this.mainImageSrcLeft = this.tempmainImageSrcLeft
+
+        if (this.idx == 1) {
+          sendExamStartSignal()
+        } else if (this.idx == 2) {
+          sendExamSecondSignal()
+        } else if (this.idx == 3) {
+          sendExamThirdSignal()
+        } else if (this.idx == 4) {
+          sendExamFourthSignal()
+        } else if (this.idx == 5) {
+          sendExamFinishSignal()
+
+          clearInterval(this.timerLeft)
+          clearInterval(this.timerRight)
+          this.examFinish();
+        }
       })
     },
     onLoaded() {
       this.isLoaded = true;
     },
-    getCurrentTimeStamp() {
-      this.idx ++;
-      if (this.idx == 1) 
-        this.examStart = Date.now()
-      else if (this.idx == 5)
-        this.examEnd = Date.now()
-        
-      if (this.idx == 6) {
-        clearInterval(this.timerLeft)
-        clearInterval(this.timerRight)
-        this.examFinish();
-      }
-    },
     examFinish() {
-      sendExamFinishSignal()
       var self = this
       this.timer = setInterval(function(){ 
         self.checkMessage()
@@ -111,8 +111,10 @@ export default {
       }
     },
     getData() {
-      var i = 0;
-      for (i = 0; i < this.times.length - 1; i ++) {
+      var result = getStreamTimes()
+      this.times = result
+
+      for (var i = 0; i < this.times.length; i ++) {
         this.trial.trialStart = this.times[i]
         this.trial.trialEnd = this.times[i + 1]
         this.trials.push(this.trial)
@@ -121,23 +123,20 @@ export default {
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
         "timingData" : {
-          "examStart" : this.examStart,
-          "examEnd" : this.examEnd,
+          "examStart" : result[0],
+          "examEnd" : result[4],
           "trials" : this.trials
         }
       }
-      var self = this;
 
-      setTimeout(function(){ 
-        axios.put(self.server_url+'/session/'+self.sessionId, param).then (response => {
-          if (response.status === 200 ) {
-            var result = getTimeRange()
-            self.getVideoClip(result.startTime, +result.endTime + +15000)
-          } else {
-            alert(response.data.userMessage)
-          }
-        });
-      }, 15000);
+      axios.put(this.server_url+'/session/'+this.sessionId, param).then (response => {
+        if (response.status === 200 ) {
+          var result = getTimeRange()
+          this.getVideoClip(result.startTime, result.endTime)
+        } else {
+          alert(response.data.userMessage)
+        }
+      });
     },
     getVideoClip(startTime, endTime) {
       console.log(startTime, "", endTime)
@@ -151,6 +150,7 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId, param).then (response => {
         if (response.status === 200 ) {
+          localStorage.setItem("examUrl", "https://eyesdemo.s3.amazonaws.com/clips_eafbfdad-4d26-4a9f-9e3c-cb2bf228843e_eyesdemo.mp4")
           clearInterval(this.timer)
           this.$router.push({ path: '/finish' })
         } else {
@@ -169,7 +169,6 @@ export default {
     let trial = localStorage.getItem("trial")
     self.timerLeft = setInterval(function(){ 
       self.getLeftImages()
-      self.getCurrentTimeStamp()
     }, trial * 1000);
 
     self.timerRight = setInterval(function(){ 

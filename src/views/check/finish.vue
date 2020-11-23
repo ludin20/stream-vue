@@ -33,6 +33,27 @@
           </el-col>
         <el-col :span="10">.</el-col>
       </el-form-item>
+
+      <el-form-item>
+        <el-col :span="24">
+          <h5 class="title2">Below is your exam result link:</h5>
+        </el-col>
+      </el-form-item>
+      <el-form-item>
+        <el-col :span="8">.</el-col>
+          <el-col :span="9">
+            <el-input
+              ref="examUrl"
+              name="examUrl"
+              type="text"
+              placeholder="ExamUrl"
+              tabindex="1"
+              auto-complete="on"
+              v-model="form.examUrl"
+            />
+          </el-col>
+        <el-col :span="10">.</el-col>
+      </el-form-item>
         
       <el-form-item>
         <el-col :span="24" style="text-align: center;">
@@ -53,7 +74,8 @@ export default {
     return {
       loading: false,
       form: {
-        sessionId: localStorage.getItem("sessionId")
+        sessionId: localStorage.getItem("sessionId"),
+        examUrl: localStorage.getItem("examUrl")
       }
     }
   },

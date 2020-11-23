@@ -227,7 +227,7 @@ export default {
       })
     },
     checkMessage() {
-      var status = getStreamStatusValue();
+      var status = getStreamStatusValue()
       if (status) {
         clearInterval(this.timer)
         this.loading = false 
@@ -278,7 +278,6 @@ export default {
     }
   },
   mounted: function () {
-    // this.getPermissionCamera()
   },
   created() {
   }
