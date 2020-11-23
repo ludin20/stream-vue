@@ -150,7 +150,8 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId, param).then (response => {
         if (response.status === 200 ) {
-          localStorage.setItem("examUrl", "https://eyesdemo.s3.amazonaws.com/clips_eafbfdad-4d26-4a9f-9e3c-cb2bf228843e_eyesdemo.mp4")
+          console.log(response)
+          localStorage.setItem("examUrl", response.data.returnData.s3_url)
           clearInterval(this.timer)
           this.$router.push({ path: '/finish' })
         } else {
