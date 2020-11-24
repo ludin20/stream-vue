@@ -31,7 +31,7 @@
 
 <script>
 import axios from 'axios'
-import { stopMaster, sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue, getStreamTimes } from '@/utils/master'
+import { stopMaster, sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue, getStreamTimes, initialize } from '@/utils/master'
 import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
 export default {
   data() {
@@ -150,9 +150,9 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId, param).then (response => {
         if (response.status === 200 ) {
-          console.log(response)
           localStorage.setItem("examUrl", response.data.returnData.s3_url)
           clearInterval(this.timer)
+          initialize()
           this.$router.push({ path: '/finish' })
         } else {
           alert(response.data.userMessage)

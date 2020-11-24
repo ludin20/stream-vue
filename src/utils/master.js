@@ -351,6 +351,12 @@ export function getStreamTimes() {
     result[2] = thirdTime
     result[3] = fourthTime
     result[4] = endTime
+    result[5] = endTime + 4000
 
     return result
+}
+
+export function initialize() {
+    isStreamStart = false;
+    isStreamEnd = false;
 }
