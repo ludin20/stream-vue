@@ -113,8 +113,7 @@ export default {
     getData() {
       var result = getStreamTimes()
       this.times = result
-
-      for (var i = 0; i < this.times.length; i ++) {
+      for (var i = 0; i < this.times.length - 1; i ++) {
         this.trial.trialStart = this.times[i]
         this.trial.trialEnd = this.times[i + 1]
         this.trials.push(this.trial)
