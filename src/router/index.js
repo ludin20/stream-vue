@@ -33,7 +33,12 @@ import Layout from '@/layout'
 export const constantRoutes = [
   {
     path: '/',
-    component: () => import('@/views/camera/index'),
+    component: () => import('@/views/dashboard/index'),
+    hidden: true
+  },
+  {
+    path: '/dashboard',
+    component: () => import('@/views/dashboard/index'),
     hidden: true
   },
   {
@@ -49,6 +54,11 @@ export const constantRoutes = [
   {
     path: '/finish',
     component: () => import('@/views/check/finish'),
+    hidden: true
+  },
+  {
+    path: '/exam',
+    component: () => import('@/views/exam/exam'),
     hidden: true
   }
 ]

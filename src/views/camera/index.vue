@@ -1,102 +1,40 @@
 <template>
   <div class="app-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form class="login-form" auto-complete="on" label-position="left">
       <el-form-item>
         <img class="logo" src="../../assets/Logo.png">
         <el-col :span="24">
-          <h3 class="title" style="">Real Time Video Test</h3>
+          <h3 class="title" style="">Eyes on Patient</h3>
         </el-col>
       </el-form-item>
-
-      <!-- <div class="title-container">
-        <h3 class="title">Real Time Video Test</h3>
-      </div> -->
-
-      <!-- <el-form-item prop="username">
-        <span class="svg-container">
-          <svg-icon icon-class="user" />
-        </span>
-        <el-input
-          ref="username"
-          v-model="loginForm.username"
-          placeholder="Username"
-          name="username"
-          type="text"
-          tabindex="1"
-          auto-complete="on"
-        />
-      </el-form-item> -->
 
       <el-form-item prop="email" style="margin-top: 100px">
         <el-col :span="5">.</el-col>
         <el-col :span="5" style="margin-top: 150px">
           <el-form-item>
-            <el-input
-              ref="email"
-              v-model="loginForm.email"
-              placeholder="Email address field"
-              name="email"
-              type="text"
-              tabindex="1"
-              auto-complete="on"
-            />
-            <el-input
-              style="margin-top: 10px"
-              ref="trial"
-              v-model="loginForm.trial"
-              placeholder="Trial Length"
-              name="trial"
-              type="number"
-              tabindex="1"
-              auto-complete="on"
-            />
+            <span class="sub-title">Press START to begin the exam</span>
           </el-form-item>
           <el-form-item>
-            <el-col :span="10">.</el-col>
+            <el-col :span="7">.</el-col>
             <el-col :span="2">
               <el-button :loading="loading" type="primary" style="margin-top: 50px" @click.native.prevent="handleStart">Start</el-button>
+              <!-- <el-button :loading="loading" type="primary" style="margin-top: 50px" @click.native.prevent="handleExam">Exam</el-button> -->
             </el-col>
           </el-form-item>
         </el-col>
         <el-col :span="2">.</el-col>
         <el-col :span="5">
           <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted/>
-          <video id="remove-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted hidden />
+          <video id="remote-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted hidden />
         </el-col>
       </el-form-item>
-
-      <!-- <el-form-item prop="password">
-        <span class="svg-container">
-          <svg-icon icon-class="password" />
-        </span>
-        <el-input
-          :key="passwordType"
-          ref="password"
-          v-model="loginForm.password"
-          :type="passwordType"
-          placeholder="Password"
-          name="password"
-          tabindex="2"
-          auto-complete="on"
-          @keyup.enter.native="handleLogin"
-        />
-        <span class="show-pwd" @click="showPwd">
-          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-        </span>
-      </el-form-item> -->
-      <!-- <el-form-item>
-        <el-col :span="7">.</el-col>
-        <el-col :span="2">
-          <el-button :loading="loading" type="primary" @click.native.prevent="handleStart">Start</el-button>
-        </el-col>
-      </el-form-item> -->
     </el-form>
   </div>
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
 import { startMaster, getStreamStatusValue } from '@/utils/master'
-import { SERVER_URL, STREAM_CONFIG_URL } from '@/config/config'
+import { SERVER_URL, STREAM_CONFIG_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
 import axios from 'axios';
 
 export default {
@@ -124,19 +62,10 @@ export default {
       }
     }
     return {
+      secret_key: SECRET_KEY,
+      access_key_id: ACCESS_KEY_ID,
       server_url: SERVER_URL,
       stream_config_url: STREAM_CONFIG_URL,
-      loginForm: {
-        username: 'admin',
-        password: '111111',
-        email: '',
-        trial: 4
-      },
-      loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }],
-        email: [{ required: true, trigger: 'blur', validator: validateEmail }]
-      },
       loading: false,
       channelName: 'eriks',
       passwordType: 'password',
@@ -166,47 +95,41 @@ export default {
       })
     },
     handleStart() {
-      this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            axios.get(this.stream_config_url+'/streamConfig').then (response => {
-              if (response.status === 200 ) {
-                var streamARN = response.data.returnData.streamARN
-                var streamBuf = streamARN.split("/")[1]
-                var kvsName = streamBuf.split("/")[0]
+      this.loading = true
+      axios.get(this.stream_config_url+'/streamConfig').then (response => {
+        if (response.status === 200 ) {
+          var streamARN = response.data.returnData.streamARN
+          var streamBuf = streamARN.split("/")[1]
+          var kvsName = streamBuf.split("/")[0]
 
-                var signalChannelARN = response.data.returnData.signalChannelARN
-                var signalBuf = signalChannelARN.split("/")[1]
-                var signalName = signalBuf.split("/")[0]
+          var signalChannelARN = response.data.returnData.signalChannelARN
+          var signalBuf = signalChannelARN.split("/")[1]
+          var signalName = signalBuf.split("/")[0]
 
-                this.channelName = signalName
+          this.channelName = signalName
 
-                localStorage.setItem("streamName", kvsName)
-                localStorage.setItem("signalChannelName", signalName)
-                localStorage.setItem("streamARN", streamARN)
+          localStorage.setItem("streamName", kvsName)
+          localStorage.setItem("signalChannelName", signalName)
+          localStorage.setItem("streamARN", streamARN)
 
-                const localView = document.getElementById('local-view')
-                const remoteView = document.getElementById('remote-view')
-                const formValues = this.getFormValues()
-                startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-                })
-                this.createSession()
-              } else {
-                alert(response.data.userMessage)
-              }
-            })
-          }).catch(() => {
-            this.loading = false
+          const localView = document.getElementById('local-view')
+          const remoteView = document.getElementById('remote-view')
+          const formValues = this.getFormValues()
+          startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
           })
+          localStorage.setItem("cameraStatus", "on");
+          this.createSession()
         } else {
-          return false
+          alert(response.data.userMessage)
         }
       })
     },
+    // handleExam() {
+    //   this.$router.push({ path: '/exam' }) 
+    // },
     createSession() {
       let param = {
-        "email" : this.loginForm.email,
+        "email" : localStorage.getItem("email"),
         "streamName": localStorage.getItem("streamName"),
         "signalChannelName": localStorage.getItem("signalChannelName"),
       }
@@ -215,7 +138,6 @@ export default {
         if (response.status === 200 ) {
           localStorage.setItem("email", response.data.returnData.email)
           localStorage.setItem("sessionId", response.data.returnData.sessionId)
-          localStorage.setItem("trial", this.loginForm.trial)
 
           var self = this
           this.timer = setInterval(function(){ 
@@ -263,19 +185,12 @@ export default {
         useTrickleICE: true,
         natTraversalDisabled: false,
         forceTURN: false,
-        accessKeyId: 'AKIAY6TQDS7NUDMVKY4L',
+        accessKeyId: this.access_key_id,
         endpoint: null,
-        secretAccessKey: 'DugcilM5xifwj/vPx0ycCAOp8R6FpHcM55fGDzXk',
+        secretAccessKey: this.secret_key,
         sessionToken: null
       }
     },
-    getPermissionCamera() {
-      const localView = document.getElementById('local-view')
-      const remoteView = document.getElementById('remote-view')
-      const formValues = this.getFormValues()
-      startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-      })
-    }
   },
   mounted: function () {
   },
@@ -295,5 +210,9 @@ export default {
   font-size: 26px;
 }
 
+.sub-title {
+  font-weight: bold;
+  font-size: 20px;
+}
 </style>
 

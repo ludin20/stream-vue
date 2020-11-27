@@ -357,6 +357,12 @@ export function getStreamTimes() {
 }
 
 export function initialize() {
-    isStreamStart = false;
-    isStreamEnd = false;
+    isStreamStart = false
+    isStreamEnd = false
+    remoteSenderClientId = ""
+    startTime = 0
+    endTime = 0
+    secondTime = 0
+    thirdTime = 0
+    fourthTime = 0
 }

@@ -103,11 +103,12 @@ export default {
         self.checkMessage()
       }, 500);
     },
-    checkMessage() {
+    checkMessage() {  
       var result = getStreamEndStatusValue()
       if (result) {
         clearInterval(this.timer)
-        this.getData()
+        var result = getTimeRange()
+        this.getVideoClip(result.startTime, result.endTime)
       }
     },
     getData() {
@@ -121,6 +122,7 @@ export default {
       }
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
+        "s3_url": localStorage.getItem("examUrl"),
         "timingData" : {
           "examStart" : result[0],
           "examEnd" : result[4],
@@ -128,52 +130,62 @@ export default {
         }
       }
 
-      axios.put(this.server_url+'/session/'+this.sessionId, param).then (response => {
+      axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          var result = getTimeRange()
-          this.getVideoClip(result.startTime, result.endTime)
+          clearInterval(this.timer)
+          initialize()
+          stopMaster()
+          this.$router.push({ path: '/finish' })
         } else {
           alert(response.data.userMessage)
         }
       });
     },
     getVideoClip(startTime, endTime) {
-      console.log(startTime, "", endTime)
       let param = {
         "streamName": localStorage.getItem("streamName"),
         "streamARN": localStorage.getItem("streamARN"),
         "sessionId": localStorage.getItem("sessionId"),
+        "examId": localStorage.getItem("examId"),
         "StartTimestamp" : startTime,
         "EndTimestamp" : endTime
       }
 
-      axios.post(this.server_url+'/session/'+this.sessionId, param).then (response => {
+      axios.post(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
           localStorage.setItem("examUrl", response.data.returnData.s3_url)
-          clearInterval(this.timer)
-          initialize()
-          this.$router.push({ path: '/finish' })
+          this.getData()
         } else {
           alert(response.data.userMessage)
         }
       });
+    },
+    examStart() {
+      var param = {
+        "examCreate": "create"
+      }
+      axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
+        if (response.status === 200 ) {
+          localStorage.setItem("examId", response.data.returnData.examId)
+          let self = this;
+          self.timerLeft = setInterval(function(){ 
+            self.getLeftImages()
+          }, 4 * 1000);
+
+          self.timerRight = setInterval(function(){ 
+            self.getRightImages()
+          }, 4 * 1000);
+        } else {
+          alert(response.data.userMessage)
+        }
+      })
     }
   },
   
   mounted: function () {
-    
   },
   created() {
-    let self = this;
-
-    let trial = localStorage.getItem("trial")
-    self.timerLeft = setInterval(function(){ 
-      self.getLeftImages()
-    }, trial * 1000);
-
-    self.timerRight = setInterval(function(){ 
-      self.getRightImages()
-    }, trial * 1000);
+    this.examStart()
   }
 }
 </script>
