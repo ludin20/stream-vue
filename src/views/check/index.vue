@@ -189,11 +189,11 @@ export default {
           let self = this;
           self.timerLeft = setInterval(function(){ 
             self.getLeftImages()
-          }, 4 * 1000);
+          }, 4.5 * 1000);
 
           self.timerRight = setInterval(function(){ 
             self.getRightImages()
-          }, 4 * 1000);
+          }, 4.5 * 1000);
         } else {
           alert(response.data.userMessage)
         }
