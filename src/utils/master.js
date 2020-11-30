@@ -12,8 +12,8 @@ const master = {
 
 var isStreamStart = false, isStreamEnd = false
 var remoteSenderClientId = ""
-var startTime = 0, endTime = 0, secondTime = 0, thirdTime = 0, fourthTime = 0
-
+var startTime = 0, endTime = 0, secondTime = 0, thirdTime = 0, fourthTime = 0, fifthTime = 0
+var localStream = null
 export async function startMaster(localView, remoteView, formValues, onStatsReport, onRemoteDataMessage) {
     master.localView = localView
     master.remoteView = remoteView
@@ -113,7 +113,8 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
     if (formValues.sendVideo || formValues.sendAudio) {
         try {
             master.localStream = await navigator.mediaDevices.getUserMedia(constraints)
-            localView.srcObject = master.localStream
+            localStream = master.localStream
+            // localView.srcObject = master.localStream
         } catch (e) {
             console.error('[MASTER] Could not find webcam')
         }
@@ -136,6 +137,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
             secondTime = offer.secondTime
             thirdTime = offer.thirdTime
             fourthTime = offer.fourthTime
+            fifthTime = offer.fifthTime
             endTime = offer.endTime
             return;
         }
@@ -326,6 +328,16 @@ export function sendExamFourthSignal() {
     master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
 }
 
+export function sendExamFifthSignal() {
+    var message = {
+        type: "examFifth",
+        toJSON() {
+            return this;
+        }
+    }
+    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
+}
+
 export function sendExamFinishSignal() {
     var message = {
         type: "examFinish",
@@ -350,8 +362,8 @@ export function getStreamTimes() {
     result[1] = secondTime
     result[2] = thirdTime
     result[3] = fourthTime
-    result[4] = endTime
-    result[5] = endTime + 4000
+    result[4] = fifthTime
+    result[5] = endTime
 
     return result
 }
@@ -365,4 +377,9 @@ export function initialize() {
     secondTime = 0
     thirdTime = 0
     fourthTime = 0
+    fifthTime = 0
+}
+
+export function getStream() {
+    return localStream
 }

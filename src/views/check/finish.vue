@@ -48,7 +48,6 @@
         <el-col :span="2">.</el-col>
         <el-col :span="5">
           <video id="local-view" ref="localview" width="400" height="400" class="local-view" autoplay playsinline controls muted/>
-          <video id="remote-view" ref="remoteview" width="400" height="400" class="remote-view" autoplay playsinline controls muted hidden />
         </el-col>
       </el-form-item>
     </el-form>
@@ -56,8 +55,8 @@
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
-import { stopMaster, startMaster, getStreamStatusValue } from '@/utils/master'
-import { SERVER_URL, STREAM_CONFIG_URL, SECRET_KEY, ACCESS_KEY_ID } from '@/config/config'
+import { stopMaster, getStreamStatusValue, getStream } from '@/utils/master'
+import { SERVER_URL } from '@/config/config'
 import axios from 'axios';
 
 export default {
@@ -85,10 +84,7 @@ export default {
       }
     }
     return {
-      secret_key: SECRET_KEY,
-      access_key_id: ACCESS_KEY_ID,
       server_url: SERVER_URL,
-      stream_config_url: STREAM_CONFIG_URL,
       loading: false,
       channelName: 'eriks',
       passwordType: 'password',
@@ -135,12 +131,6 @@ export default {
       this.loading = true
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId"), param).then (response => {
         if (response.status === 200 ) {
-          const localView = document.getElementById('local-view')
-          const remoteView = document.getElementById('remote-view')
-          const formValues = this.getFormValues()
-          
-          startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-          })
 
           var self = this
           this.timer = setInterval(function(){ 
@@ -168,35 +158,11 @@ export default {
       } else {
         $('.datachannel').addClass('d-none')
       }
-    },
-    getRandomClientId() {
-      return Math.random()
-        .toString(36)
-        .substring(2)
-        .toUpperCase()
-    },
-    getFormValues() {
-      var channelName = localStorage.getItem("signalChannelName")
-      return {
-        region: 'us-east-1',
-        channelName: channelName,
-        clientId: this.getRandomClientId(),
-        sendVideo: true,
-        sendAudio: false,
-        openDataChannel: false,
-        widescreen: true,
-        fullscreen: false,
-        useTrickleICE: true,
-        natTraversalDisabled: false,
-        forceTURN: false,
-        accessKeyId: this.access_key_id,
-        endpoint: null,
-        secretAccessKey: this.secret_key,
-        sessionToken: null
-      }
-    },
+    }
   },
   mounted: function () {
+    const localView = document.getElementById('local-view')
+    localView.srcObject = getStream()
   },
   created() {
   }

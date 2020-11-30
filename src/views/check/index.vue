@@ -9,14 +9,13 @@
         </el-col>
       </el-form-item>
       
-      <el-form-item>
+      <el-form-item v-if="!resultSaving">
         <el-col :span="11">
           <transition name="fade">
             <img :src="mainImageSrcLeft" class="leftimage" v-on:load="onLoaded" v-show="mainImageSrcLeft != '' && isLoaded">
           </transition>
           <video poster="../../assets/loading.gif" class="leftvideo" v-if="mainImageSrcLeft==''"></video>
         </el-col>
-        
         <el-col :span="2" class="line">.</el-col>
         <el-col :span="11">
           <video poster="../../assets/loading.gif" class="rightvideo" v-show="mainImageSrcRight==''"></video>
@@ -25,13 +24,28 @@
           </transition>
         </el-col>
       </el-form-item>
+
+      <el-form-item class="result-video">
+        <el-col :span="24">
+          <transition name="fade">
+            <video poster="../../assets/loading.gif" style="text-align: center;" v-if="resultSaving">
+            </video>
+          </transition>
+        </el-col>
+      </el-form-item>
+
+      <el-form-item class="result-text">
+        <el-col :span="24">
+          <span v-if="resultSaving">Saving results...</span>
+        </el-col>
+      </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
-import { stopMaster, sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, getStreamEndStatusValue, getStreamTimes, initialize } from '@/utils/master'
+import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize } from '@/utils/master'
 import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
 export default {
   data() {
@@ -53,6 +67,7 @@ export default {
       trials: [],
       trial: {},
       isLoaded: false,
+      resultSaving: false
     }
   },
   methods: {
@@ -86,6 +101,8 @@ export default {
         } else if (this.idx == 4) {
           sendExamFourthSignal()
         } else if (this.idx == 5) {
+          sendExamFifthSignal()
+        } else if (this.idx == 6) {
           sendExamFinishSignal()
 
           clearInterval(this.timerLeft)
@@ -98,6 +115,7 @@ export default {
       this.isLoaded = true;
     },
     examFinish() {
+      this.resultSaving = true;
       var self = this
       this.timer = setInterval(function(){ 
         self.checkMessage()
@@ -123,9 +141,10 @@ export default {
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
         "s3_url": localStorage.getItem("examUrl"),
+        "email": localStorage.getItem("email"),
         "timingData" : {
           "examStart" : result[0],
-          "examEnd" : result[4],
+          "examEnd" : result[5],
           "trials" : this.trials
         }
       }
@@ -134,7 +153,6 @@ export default {
         if (response.status === 200 ) {
           clearInterval(this.timer)
           initialize()
-          stopMaster()
           this.$router.push({ path: '/finish' })
         } else {
           alert(response.data.userMessage)
@@ -148,6 +166,7 @@ export default {
         "sessionId": localStorage.getItem("sessionId"),
         "examId": localStorage.getItem("examId"),
         "StartTimestamp" : startTime,
+        "email": localStorage.getItem("email"),
         "EndTimestamp" : endTime
       }
 
@@ -228,6 +247,14 @@ export default {
   margin-top: 125px; 
   margin-left: 125px; 
   float: left;
+}
+
+.result-video {
+  text-align: center;
+}
+
+.result-text {
+  text-align: center;
 }
 
 .fade-enter-active, .fade-leave-active {
