@@ -109,7 +109,7 @@ export default {
         stopMaster()
       localStorage.clear()
       await this.$store.dispatch('user/logout')
-      this.$router.push({ path: '/login' })
+      window.location.href = "/login"
     },
     showPwd() {
       if (this.passwordType === 'password') {

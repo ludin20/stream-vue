@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"> </script>
+    
+    <link href="/amalia.js.min.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="/amalia.js.min.js"></script>
+
     <title><%= webpackConfig.name %></title>
   </head>
   <body>
@@ -13,6 +19,22 @@
       <strong>We're sorry but <%= webpackConfig.name %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
-    <!-- built files will be auto injected -->
+    <div id="player" hidden></div>
+    <script>
+      var player = null;
+      $(document).ready(function () {
+        $("#player").mediaPlayer({
+          src: "https://eyesdemo.s3.amazonaws.com/jmagnuss%40gmail.com/f822fb58-2342-4f83-b100-05caae414deb/d6a5b666-a818-434e-88ac-d450bc93678a.mp4",
+          callbacks: {
+            onReady: 'onReady'
+          }
+        });
+      });
+  
+      function onReady() {
+        player = $('#player').data('fr.ina.amalia.player').getPlayer();
+        $('#player').on('fr.ina.amalia.player.PlayerEventType.TIME_CHANGE', onTimeChange);
+      }
+    </script>
   </body>
 </html>

@@ -75,7 +75,7 @@ export default {
       stopMaster()
       localStorage.clear()
       await this.$store.dispatch('user/logout')
-      this.$router.push({ path: '/login' })
+      window.location.href = "/login"
     },
     
     getLeftImages() {
@@ -148,8 +148,16 @@ export default {
           "trials" : this.trials
         }
       }
-
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
+        if (response.status === 200 ) {
+          this.elastic()
+        } else {
+          alert(response.data.userMessage)
+        }
+      });
+    },
+    elastic() {
+      axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId")).then (response => {
         if (response.status === 200 ) {
           clearInterval(this.timer)
           initialize()

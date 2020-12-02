@@ -57,7 +57,12 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/exam',
+    path: '/admin',
+    component: () => import('@/views/exam/index'),
+    hidden: true
+  },
+  {
+    path: '/admin/:id',
     component: () => import('@/views/exam/exam'),
     hidden: true
   }
