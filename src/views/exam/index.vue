@@ -43,7 +43,7 @@
 
         <el-table-column align="center" label="Has Video" width="300">
           <template slot-scope="scope">
-            <el-checkbox v-model="scope.row.hasVideo" />
+            <el-checkbox v-model="scope.row.hasVideo" disabled/>
           </template>
         </el-table-column>
 
@@ -109,6 +109,9 @@ export default {
     goDetail(id) {
       var id = id;
       this.$router.push({ path: '/admin/'+id })
+    },
+    getExams() {
+
     }
   },
   
@@ -116,7 +119,7 @@ export default {
     
   },
   created() {
-    
+    this.getExams()
   }
 }
 </script>

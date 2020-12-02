@@ -150,15 +150,6 @@ export default {
       }
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          this.elastic()
-        } else {
-          alert(response.data.userMessage)
-        }
-      });
-    },
-    elastic() {
-      axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId")).then (response => {
-        if (response.status === 200 ) {
           clearInterval(this.timer)
           initialize()
           this.$router.push({ path: '/finish' })
