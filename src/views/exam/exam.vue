@@ -35,69 +35,19 @@
 <script>
 import { } from '@/utils/validate'
 import { } from '@/utils/master'
-import { } from '@/config/config'
+import { SERVER_URL } from '@/config/config'
 import axios from 'axios'
 
 export default {
   data() {
     return {
-      loading: false,
+      server_url: SERVER_URL,
       player: null,
       form: {
-        sessionId: '05ebfb99-f170-4410-9e2d-e896943b5db0',
-        examId: 'cb63f32c-f678-4e18-86d8-c01f1c99face',
-        timingData: {
-          examStart: '1606727329040',
-          examEnd: '1606727346160',
-          trials: [
-            {
-              trialStart: '1606727329040',
-              trialEnd: '1606727330800'
-            },
-            {
-              trialStart: '1606727330800',
-              trialEnd: '1606727334640'
-            },
-            {
-              trialStart: '1606727334640',
-              trialEnd: '1606727338680'
-            },
-            {
-              trialStart: '1606727338680',
-              trialEnd: '1606727342040'
-            },
-            {
-              trialStart: '1606727342040',
-              trialEnd: '1606727346160'
-            }
-          ]
-        },
-        trial: "{" + "\n" +
-               "    examStart: 1606727329040" + "\n" +
-               "    examEnd: 1606727346160" + "\n" + 
-               "    trials: [" + "\n" +
-                "     {" + "\n" +
-                  "     tiralStart:" + "1606727329040" + "\n" +
-                  "     trialEnd:" + "1606727330800" + "\n" +
-                "     }," + "\n" + 
-                "     {" + "\n" +
-                  "     tiralStart:" + "1606727330800" + "\n" +
-                  "     trialEnd:" + "1606727334640" + "\n" +
-                "     }," + "\n" + 
-                "     {" + "\n" +
-                  "     tiralStart:" + "1606727334640" + "\n" +
-                  "     trialEnd:" + "1606727338680" + "\n" +
-                "     }," + "\n" + 
-                "     {" + "\n" +
-                  "     tiralStart:" + "1606727338680" + "\n" +
-                  "     trialEnd:" + "1606727342040" + "\n" +
-                "     }," + "\n" + 
-                "     {" + "\n" +
-                  "     tiralStart:" + "1606727342040" + "\n" +
-                  "     trialEnd:" + "1606727346160" + "\n" +
-                "     }," + "\n" + 
-              "   ]" + "\n" +
-            "}"
+        sessionId: '',
+        examId: '',
+        s3_url: '',
+        trial: ''
       }
     }
   },
@@ -108,21 +58,11 @@ export default {
       localStorage.clear()
       await this.$store.dispatch('user/logout')
       window.location.href = "/login"
-    },
-    // reinit() {
-    //   var video = $("#player")
-    //   $("source").attr('src', '/2.mp4')
-    //   $("video")[0].load()
-    //   video.show()
-    //   var videorect = $("#videorect")
-
-    //   videorect.append(video)  
-    // }
+    }
   },
   mounted: function () {
-    // this.reinit()
     var video = $("#player")
-    $("source").attr('src', 'https://eyesdemo.s3.amazonaws.com/jmagnuss%40gmail.com/f822fb58-2342-4f83-b100-05caae414deb/d6a5b666-a818-434e-88ac-d450bc93678a.mp4')
+    $("source").attr('src', this.form.s3_url)
     $("video")[0].load()
     video.show()
     var videorect = $("#videorect")
@@ -130,8 +70,36 @@ export default {
     videorect.append(video)
   },
   created() {
-    // this.getExaminfo()
-    // console.log(this.$router.history.current.params.id, "+++++++++++++")
+    var obj = JSON.parse(localStorage.getItem("exam"))
+    this.form.sessionId = obj.sessionId
+    this.form.examId = obj.examId
+    this.form.s3_url = obj.s3_url
+    this.form.trial = "{" + "\n" +
+               "    examStart: " + obj.timingData.examStart + "\n" +
+               "    examEnd: " + obj.timingData.examEnd + "\n" + 
+               "    trials: [" + "\n" +
+                "     {" + "\n" +
+                  "     tiralStart:" + obj.timingData.trials[0].trialStart + "\n" +
+                  "     trialEnd:" + obj.timingData.trials[0].trialEnd + "\n" +
+                "     }," + "\n" + 
+                "     {" + "\n" +
+                  "     tiralStart:" + obj.timingData.trials[1].trialStart + "\n" +
+                  "     trialEnd:" + obj.timingData.trials[1].trialEnd + "\n" +
+                "     }," + "\n" + 
+                "     {" + "\n" +
+                  "     tiralStart:" + obj.timingData.trials[2].trialStart + "\n" +
+                  "     trialEnd:" + obj.timingData.trials[2].trialEnd + "\n" +
+                "     }," + "\n" + 
+                "     {" + "\n" +
+                  "     tiralStart:" + obj.timingData.trials[3].trialStart + "\n" +
+                  "     trialEnd:" + obj.timingData.trials[3].trialEnd + "\n" +
+                "     }," + "\n" + 
+                "     {" + "\n" +
+                  "     tiralStart:" + obj.timingData.trials[4].trialStart + "\n" +
+                  "     trialEnd:" + obj.timingData.trials[4].trialEnd + "\n" +
+                "     }," + "\n" + 
+              "   ]" + "\n" +
+            "}"
   }
 }
 </script>

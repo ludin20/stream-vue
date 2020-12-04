@@ -55,49 +55,19 @@
 <script>
 import axios from 'axios'
 import {} from '@/utils/master'
-import {} from '@/config/config'
+import { SERVER_URL } from '@/config/config'
 export default {
   data() {
     return {
+      server_url: SERVER_URL,
       form: {},
-      list: [
-        {
-          id: 1,
-          examId: 'cb63f32c-f678-4e18-86d8-c01f1c99face',
-          sessionEmail: 'admin@gmail.com',
-          startTime: '2020-11-08 08:10:33',
-          hasVideo: true
-        },
-        {
-          id: 2,
-          examId: '1e9758d3-62d6-43ba-98ef-d5dbd0fae742',
-          sessionEmail: 'admin@gmail.com',
-          startTime: '2020-11-09 08:10:33',
-          hasVideo: false
-        },
-        {
-          id: 3,
-          examId: 'd6a5b666-a818-434e-88ac-d450bc93678a',
-          sessionEmail: 'jmagnuss@gmail.com',
-          startTime: '2020-11-08 08:11:33',
-          hasVideo: true
-        },
-        {
-          id: 4,
-          examId: '957d1d43-75c0-4ad2-9d16-6c33714b0f60',
-          sessionEmail: 'Paul425@protonmail.com',
-          startTime: '2020-11-08 08:12:33',
-          hasVideo: false
-        },
-        {
-          id: 5,
-          examId: '90c556c2-5a57-4532-8e55-d24a7d0442b4',
-          sessionEmail: 'Paul425@protonmail.com',
-          startTime: '2020-11-08 08:13:33',
-          hasVideo: true
-        },
-      ],
-      listLoading: false
+      trial: {
+        trialStart: '',
+        trialEnd: ''
+      },
+      trials: [],
+      list: [],
+      listLoading: true
     }
   },
   methods: {
@@ -107,16 +77,49 @@ export default {
       window.location.href = "/login"
     },
     goDetail(id) {
+      localStorage.setItem("exam", JSON.stringify(this.list[id]))
       var id = id;
       this.$router.push({ path: '/admin/'+id })
     },
     getExams() {
+      axios.get(this.server_url+"/exams").then (response => {
+        this.listLoading = true
+        if (response.status === 200 ) {
+          var res = response.data.hits.hits
+          for (var i = 0; i < res.length; i ++) {
+            let item = {};
+            item.id = i
+            item.examId = res[i]._source.PK.S.split("_")[1]
+            item.sessionEmail = res[i]._source.email.S
+            item.sessionId = res[i]._source.sessionId.S
+            item.startTime = new Date(parseInt(res[i]._source.CreatedAt.N)).toLocaleString()
+            item.hasVideo = (res[i]._source.s3_url.S == "" || res[i]._source.s3_url.S == "undefined") ? false : true
+            item.s3_url = res[i]._source.s3_url.S
+            item.timingData = {}
+            item.timingData.examStart = res[i]._source.timingData.M.examStart.N
+            item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
 
+            for (var j = 0; j < res[i]._source.timingData.M.trials.L.length; j ++) {
+              this.trial.trialStart = res[i]._source.timingData.M.trials.L[j].M.trialStart.N
+              this.trial.trialEnd = res[i]._source.timingData.M.trials.L[j].M.trialEnd.N
+
+              this.trials.push(this.trial)
+              this.trial = {}
+            }
+            item.timingData.trials = this.trials
+            this.trials = []
+
+            this.list.push(item)
+          }
+        } else {
+          alert(response.data.userMessage)
+        }
+        this.listLoading = false
+      });
     }
   },
   
   mounted: function () {
-    
   },
   created() {
     this.getExams()
