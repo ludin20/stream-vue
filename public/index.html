@@ -5,36 +5,57 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"> </script>
-    
-    <link href="/amalia.js.min.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="/amalia.js.min.css" />
     <script type="text/javascript" src="/amalia.js.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-logger.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-plugin-captions.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-plugin-overlay.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-plugin-text-sync.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-plugin-timeline.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-plugin-editor.min.js"></script>
+    <script type="text/javascript" src="/amalia.js-yt-player.min.js"></script>
+    <script type="text/javascript" src="/i18n/player-error-message-en.js"></script>
+    <script type="text/javascript" src="/i18n/player-message-en.js"></script>
 
     <title><%= webpackConfig.name %></title>
+    <style>
+      .ajs-plugin.plugin-timeline .timeaxis .toolsbar {
+        padding: 0px !important;
+      }
+    </style>
   </head>
   <body>
     <noscript>
       <strong>We're sorry but <%= webpackConfig.name %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
-    <div id="player" hidden></div>
+
+    <div id="myplayer-timeline-container" hidden>
+      <div style="height: 350px;">
+          <div id="myplayer-timeline"></div>
+      </div>
+      <div id="myplayer-timeline-timeline" style="height: 265px;"></div>
+      <div style="clear: both;"></div>
+    </div>
+
     <script>
-      var player = null;
-      $(document).ready(function () {
-        $("#player").mediaPlayer({
-          src: "https://eyesdemo.s3.amazonaws.com/jmagnuss%40gmail.com/f822fb58-2342-4f83-b100-05caae414deb/d6a5b666-a818-434e-88ac-d450bc93678a.mp4",
-          callbacks: {
-            onReady: 'onReady'
+      $(function() {
+        $("#myplayer-timeline").mediaPlayer({
+          autoplay: false,
+          src: "1.mp4",
+          plugins: {
+            list: [{
+              'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
+              'container': '#myplayer-timeline-timeline',
+            }]
           }
         });
       });
-  
-      function onReady() {
-        player = $('#player').data('fr.ina.amalia.player').getPlayer();
-        $('#player').on('fr.ina.amalia.player.PlayerEventType.TIME_CHANGE', onTimeChange);
-      }
     </script>
   </body>
 </html>

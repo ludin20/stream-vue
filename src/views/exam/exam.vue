@@ -61,7 +61,7 @@ export default {
     }
   },
   mounted: function () {
-    var video = $("#player")
+    var video = $("#myplayer-timeline-container")
     $("source").attr('src', this.form.s3_url)
     $("video")[0].load()
     video.show()
