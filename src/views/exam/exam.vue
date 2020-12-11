@@ -25,8 +25,17 @@
           </el-form-item>
         </el-col>
         <el-col :span="4">.</el-col>
-        <el-col :span="10" id="videorect">
+        <!-- <el-col :span="10" id="videorect">
           
+        </el-col> -->
+        <el-col :span="10">
+          <div id="myplayer-timeline-container">
+            <div style="height: 350px;">
+              <div id="myplayer-timeline"></div>
+            </div>
+            <div id="myplayer-timeline-timeline" style="height: 265px;"></div>
+            <div style="clear: both;"></div>
+          </div>
         </el-col>
       </el-form-item>
     </el-form>
@@ -61,14 +70,47 @@ export default {
     }
   },
   mounted: function () {
-    var video = $("#myplayer-timeline-container")
+    // var video = $("#myplayer-timeline-container")
     
-    $("source").attr('src', this.form.s3_url)
-    $("video")[0].load()
-    video.show()
-    var videorect = $("#videorect")
+    // $("source").attr('src', this.form.s3_url)
+    // $("video")[0].load()
+    // video.show()
+    // var videorect = $("#videorect")
 
-    videorect.append(video)
+    // videorect.append(video)
+    $("#myplayer-timeline").mediaPlayer({
+      autoplay: false,
+      src: this.form.s3_url,
+      plugins: {
+        list: [{
+          'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
+          'container': '#myplayer-timeline-timeline',
+          'parameters': {
+              listOfLines: [
+              {
+                  title: 'Events',
+                  type: 'cuepoint',
+                  metadataId: 'events-amalia01',
+                  color: '#3CF',
+                  pointNav: true
+              }, 
+              // {
+              //     title: 'Ball moving up',
+              //     type: 'segment',
+              //     metadataId: 'ball-amalia01',
+              //     color: '#F00'
+              // }, 
+              // {
+              //     title: 'Keyframes every 2s',
+              //     type: 'image',
+              //     metadataId: 'kf-amalia01',
+              //     pointNav: true
+              // }, 
+              ]
+          }
+        }]
+      }
+    });
   },
   created() {
     var obj = JSON.parse(localStorage.getItem("exam"))
