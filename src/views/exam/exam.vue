@@ -67,6 +67,8 @@ export default {
     }
   },
   mounted: function () {
+    document.getElementsByClassName("el-form-item__content")[1].style.lineHeight = "unset"
+
     $("#myplayer-timeline").mediaPlayer({
       autoplay: false,
       src: this.form.s3_url,
