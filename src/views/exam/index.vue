@@ -25,19 +25,19 @@
 
         <el-table-column label="Exam ID" width="500" align="center">
           <template slot-scope="scope">
-            <a href="#" @click="goDetail(scope.row.id)">{{ scope.row.examId }}</a>
+            <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.examId }}</a>
           </template>
         </el-table-column>
 
         <el-table-column label="Session Email" width="500" align="center">
           <template slot-scope="scope">
-            <a href="#" @click="goDetail(scope.row.id)">{{ scope.row.sessionEmail }}</a>
+            <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.sessionEmail }}</a>
           </template>
         </el-table-column>
 
         <el-table-column label="Start Time" width="500" align="center">
           <template slot-scope="scope">
-            <a href="#" @click="goDetail(scope.row.id)">{{ scope.row.startTime }}</a>
+            <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.startTime }}</a>
           </template>
         </el-table-column>
 
