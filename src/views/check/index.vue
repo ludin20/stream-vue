@@ -75,7 +75,7 @@ export default {
       stopMaster()
       localStorage.clear()
       await this.$store.dispatch('user/logout')
-      window.location.href = "/login"
+      window.location.href = "/"
     },
     
     getLeftImages() {

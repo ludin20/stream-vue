@@ -74,7 +74,7 @@ export default {
     async onCancel() {
       localStorage.clear()
       await this.$store.dispatch('user/logout')
-      window.location.href = "/login"
+      window.location.href = "/"
     },
     goDetail(id) {
       localStorage.setItem("exam", JSON.stringify(this.list[id]))

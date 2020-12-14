@@ -156,43 +156,48 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           localStorage.setItem("email", this.loginForm.email)
+          this.$store.dispatch('user/login', this.loginForm).then(() => {
+            this.loading = true
+            axios.get(this.stream_config_url+'/streamConfig').then (response => {
+              if (response.status === 200 ) {
+                var streamARN = response.data.returnData.streamARN
+                var streamBuf = streamARN.split("/")[1]
+                var kvsName = streamBuf.split("/")[0]
 
-          this.loading = true
-          axios.get(this.stream_config_url+'/streamConfig').then (response => {
-            if (response.status === 200 ) {
-              var streamARN = response.data.returnData.streamARN
-              var streamBuf = streamARN.split("/")[1]
-              var kvsName = streamBuf.split("/")[0]
+                var signalChannelARN = response.data.returnData.signalChannelARN
+                var signalBuf = signalChannelARN.split("/")[1]
+                var signalName = signalBuf.split("/")[0]
 
-              var signalChannelARN = response.data.returnData.signalChannelARN
-              var signalBuf = signalChannelARN.split("/")[1]
-              var signalName = signalBuf.split("/")[0]
+                this.channelName = signalName
 
-              this.channelName = signalName
+                localStorage.setItem("streamName", kvsName)
+                localStorage.setItem("signalChannelName", signalName)
+                localStorage.setItem("streamARN", streamARN)
 
-              localStorage.setItem("streamName", kvsName)
-              localStorage.setItem("signalChannelName", signalName)
-              localStorage.setItem("streamARN", streamARN)
+                const localView = document.getElementById('local-view')
+                const remoteView = document.getElementById('remote-view')
+                const formValues = this.getFormValues()
+                startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
+                })
 
-              const localView = document.getElementById('local-view')
-              const remoteView = document.getElementById('remote-view')
-              const formValues = this.getFormValues()
-              startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-              })
-
-              localStorage.setItem("cameraStatus", "on");
-              this.createSession()
-            } else {
-              alert(response.data.userMessage)
-            }
-          })
+                localStorage.setItem("cameraStatus", "on");
+                this.createSession()
+              } else {
+                alert(response.data.userMessage)
+              }
+            })
+          }).catch(() => {
+          });
         } else {
           return false
         }
       })
     },
     handleAdmin() {
-      this.$router.push({ path: '/admin' }) 
+      this.$store.dispatch('user/login', this.loginForm).then(() => {
+        this.$router.push({ path: '/admin' }) 
+      }).catch(() => {
+      });
     },
     createSession() {
       let param = {
@@ -250,12 +255,8 @@ export default {
     },
   },
   mounted: function () {
-    this.$store.dispatch('user/login', this.loginForm).then(() => {
-    }).catch(() => {
-    });
   },
-  created() {
-  }
+  created() {}
 }
 </script>
 <style scoped>

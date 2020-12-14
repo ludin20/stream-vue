@@ -25,9 +25,6 @@
           </el-form-item>
         </el-col>
         <el-col :span="4">.</el-col>
-        <!-- <el-col :span="10" id="videorect">
-          
-        </el-col> -->
         <el-col :span="10">
           <div id="myplayer-timeline-container">
             <div style="height: 350px;">
@@ -66,22 +63,19 @@ export default {
     async onCancel() {
       localStorage.clear()
       await this.$store.dispatch('user/logout')
-      window.location.href = "/login"
+      window.location.href = "/"
     }
   },
   mounted: function () {
-    // var video = $("#myplayer-timeline-container")
-    
-    // $("source").attr('src', this.form.s3_url)
-    // $("video")[0].load()
-    // video.show()
-    // var videorect = $("#videorect")
-
-    // videorect.append(video)
     $("#myplayer-timeline").mediaPlayer({
       autoplay: false,
       src: this.form.s3_url,
       plugins: {
+        dataServices: [
+          'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',
+          'https://eyesdemo.s3.amazonaws.com/amalia01-kf.json',
+          'https://eyesdemo.s3.amazonaws.com/amalia01-ball.json'
+        ],
         list: [{
           'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
           'container': '#myplayer-timeline-timeline',
@@ -94,19 +88,19 @@ export default {
                   color: '#3CF',
                   pointNav: true
               }, 
-              // {
-              //     title: 'Ball moving up',
-              //     type: 'segment',
-              //     metadataId: 'ball-amalia01',
-              //     color: '#F00'
-              // }, 
-              // {
-              //     title: 'Keyframes every 2s',
-              //     type: 'image',
-              //     metadataId: 'kf-amalia01',
-              //     pointNav: true
-              // }, 
-              ]
+              {
+                  title: 'Ball moving up',
+                  type: 'segment',
+                  metadataId: 'ball-amalia01',
+                  color: '#F00'
+              }, 
+              {
+                  title: 'Keyframes every 2s',
+                  type: 'image',
+                  metadataId: 'kf-amalia01',
+                  pointNav: true
+              }, 
+            ]
           }
         }]
       }
@@ -118,28 +112,28 @@ export default {
     this.form.examId = obj.examId
     this.form.s3_url = obj.s3_url
     this.form.trial = "{" + "\n" +
-               "    examStart: " + obj.timingData.examStart + "\n" +
-               "    examEnd: " + obj.timingData.examEnd + "\n" + 
+               "    examStart: " + new Date(parseInt(obj.timingData.examStart)).toLocaleString() + "\n" +
+               "    examEnd: " + new Date(parseInt(obj.timingData.examEnd)).toLocaleString() + "\n" + 
                "    trials: [" + "\n" +
                 "     {" + "\n" +
-                  "     tiralStart:" + obj.timingData.trials[0].trialStart + "\n" +
-                  "     trialEnd:" + obj.timingData.trials[0].trialEnd + "\n" +
+                  "     tiralStart:" + new Date(parseInt(obj.timingData.trials[0].trialStart)).toLocaleString() + "\n" +
+                  "     trialEnd:" + new Date(parseInt(obj.timingData.trials[0].trialEnd)).toLocaleString() + "\n" +
                 "     }," + "\n" + 
                 "     {" + "\n" +
-                  "     tiralStart:" + obj.timingData.trials[1].trialStart + "\n" +
-                  "     trialEnd:" + obj.timingData.trials[1].trialEnd + "\n" +
+                  "     tiralStart:" + new Date(parseInt(obj.timingData.trials[1].trialStart)).toLocaleString() + "\n" +
+                  "     trialEnd:" + new Date(parseInt(obj.timingData.trials[1].trialEnd)).toLocaleString() + "\n" +
                 "     }," + "\n" + 
                 "     {" + "\n" +
-                  "     tiralStart:" + obj.timingData.trials[2].trialStart + "\n" +
-                  "     trialEnd:" + obj.timingData.trials[2].trialEnd + "\n" +
+                  "     tiralStart:" + new Date(parseInt(obj.timingData.trials[2].trialStart)).toLocaleString() + "\n" +
+                  "     trialEnd:" + new Date(parseInt(obj.timingData.trials[2].trialEnd)).toLocaleString() + "\n" +
                 "     }," + "\n" + 
                 "     {" + "\n" +
-                  "     tiralStart:" + obj.timingData.trials[3].trialStart + "\n" +
-                  "     trialEnd:" + obj.timingData.trials[3].trialEnd + "\n" +
+                  "     tiralStart:" + new Date(parseInt(obj.timingData.trials[3].trialStart)).toLocaleString() + "\n" +
+                  "     trialEnd:" + new Date(parseInt(obj.timingData.trials[3].trialEnd)).toLocaleString() + "\n" +
                 "     }," + "\n" + 
                 "     {" + "\n" +
-                  "     tiralStart:" + obj.timingData.trials[4].trialStart + "\n" +
-                  "     trialEnd:" + obj.timingData.trials[4].trialEnd + "\n" +
+                  "     tiralStart:" + new Date(parseInt(obj.timingData.trials[4].trialStart)).toLocaleString() + "\n" +
+                  "     trialEnd:" + new Date(parseInt(obj.timingData.trials[4].trialEnd)).toLocaleString() + "\n" +
                 "     }," + "\n" + 
               "   ]" + "\n" +
             "}"
