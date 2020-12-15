@@ -71,7 +71,17 @@ export default {
 
     $("#myplayer-timeline").mediaPlayer({
       autoplay: false,
+      // crossorigin: 'Anonymous',
       src: this.form.s3_url,
+      // debug: true,
+      // shortcuts: {
+      //   enabled: true,
+      //   debug: false,
+      //   listOfShortcuts: [
+      //     {'s': 'f3', 'c': 'moveNextFrame'},
+      //     {'s': 'f4', 'c': 'movePrevFrame'}
+      //   ]
+      // },
       plugins: {
         dataServices: [
           'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',

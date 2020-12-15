@@ -29,7 +29,63 @@
       <strong>We're sorry but <%= webpackConfig.name %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
+    <div id="myplayer-timeline-container">
+      <div style="height: 350px;">
+        <div id="myplayer-timeline"></div>
+      </div>
+      <div id="myplayer-timeline-timeline" style="height: 265px;"></div>
+      <div style="clear: both;"></div>
+    </div>
     <script>
+      $("#myplayer-timeline").mediaPlayer({
+        autoplay: false,
+        // crossorigin: 'Anonymous',
+        // src: this.form.s3_url,
+        src: 'video.mp4',
+        // debug: true,
+        // shortcuts: {
+        //   enabled: true,
+        //   debug: false,
+        //   listOfShortcuts: [
+        //     {'s': 'f3', 'c': 'moveNextFrame'},
+        //     {'s': 'f4', 'c': 'movePrevFrame'}
+        //   ]
+        // },
+        plugins: {
+          dataServices: [
+            'amalia01-events.json',
+            'amalia01-kf.json',
+            'amalia01-ball.json'
+          ],
+          list: [{
+            'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
+            'container': '#myplayer-timeline-timeline',
+            'parameters': {
+                listOfLines: [
+                {
+                    title: 'Events',
+                    type: 'cuepoint',
+                    metadataId: 'events-amalia01',
+                    color: '#3CF',
+                    pointNav: true
+                }, 
+                {
+                    title: 'Ball moving up',
+                    type: 'segment',
+                    metadataId: 'ball-amalia01',
+                    color: '#F00'
+                }, 
+                {
+                    title: 'Keyframes every 2s',
+                    type: 'image',
+                    metadataId: 'kf-amalia01',
+                    pointNav: true
+                }, 
+              ]
+            }
+          }]
+        }
+      });
     </script>
   </body>
 </html>
