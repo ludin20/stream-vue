@@ -71,21 +71,10 @@ export default {
 
     $("#myplayer-timeline").mediaPlayer({
       autoplay: false,
-      // crossorigin: 'Anonymous',
       src: this.form.s3_url,
-      // debug: true,
-      // shortcuts: {
-      //   enabled: true,
-      //   debug: false,
-      //   listOfShortcuts: [
-      //     {'s': 'f3', 'c': 'moveNextFrame'},
-      //     {'s': 'f4', 'c': 'movePrevFrame'}
-      //   ]
-      // },
       plugins: {
         dataServices: [
           'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',
-          'https://eyesdemo.s3.amazonaws.com/amalia01-kf.json',
           'https://eyesdemo.s3.amazonaws.com/amalia01-ball.json'
         ],
         list: [{
@@ -94,23 +83,17 @@ export default {
           'parameters': {
               listOfLines: [
               {
-                  title: 'Events',
-                  type: 'cuepoint',
-                  metadataId: 'events-amalia01',
-                  color: '#3CF',
-                  pointNav: true
+                title: 'Events',
+                type: 'cuepoint',
+                metadataId: 'events-amalia01',
+                color: '#3CF',
+                pointNav: true
               }, 
               {
-                  title: 'Ball moving up',
-                  type: 'segment',
-                  metadataId: 'ball-amalia01',
-                  color: '#F00'
-              }, 
-              {
-                  title: 'Keyframes every 2s',
-                  type: 'image',
-                  metadataId: 'kf-amalia01',
-                  pointNav: true
+                title: 'Ball moving up',
+                type: 'segment',
+                metadataId: 'ball-amalia01',
+                color: '#F00'
               }, 
             ]
           }

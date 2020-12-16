@@ -204,6 +204,7 @@ export default {
         "email" : localStorage.getItem("email"),
         "streamName": localStorage.getItem("streamName"),
         "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN")
       }
       
       axios.post(this.server_url+'/session', param, {}).then (response => {
