@@ -67,7 +67,9 @@ export default {
       trials: [],
       trial: {},
       isLoaded: false,
-      resultSaving: false
+      resultSaving: false,
+      startTime: '',
+      endTime: ''
     }
   },
   methods: {
@@ -126,6 +128,8 @@ export default {
       if (result) {
         clearInterval(this.timer)
         var result = getTimeRange()
+        this.startTime = result.startTime
+        this.endTime = result.endTime
         this.rekognitionStop()
       }
     },
@@ -170,12 +174,23 @@ export default {
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
         if (response.status === 200) {
           // if (response.data.returnData.result === "ok") {
-            this.getVideoClip(result.startTime, result.endTime)
+            this.readData()
           // } else {
           //   alert("API Connection Error!")
           // }
         } else {
           alert(response.data.userMessage)
+        }
+      })
+    },
+    readData() {
+      axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
+        if (response.status === 200) {
+          // if (reponse.data.returnData.result === "ok") {
+            this.getVideoClip(this.startTime, this.endTime)
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         }
       })
     },
