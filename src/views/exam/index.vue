@@ -85,32 +85,36 @@ export default {
       axios.get(this.server_url+"/exams").then (response => {
         this.listLoading = true
         if (response.status === 200 ) {
-          var res = response.data.hits.hits
-          for (var i = 0; i < res.length; i ++) {
-            let item = {};
-            item.id = i
-            item.examId = res[i]._source.PK.S.split("_")[1]
-            item.sessionEmail = res[i]._source.email.S
-            item.sessionId = res[i]._source.sessionId.S
-            item.startTime = new Date(parseInt(res[i]._source.CreatedAt.N)).toLocaleString()
-            item.hasVideo = (res[i]._source.s3_url.S == "" || res[i]._source.s3_url.S == "undefined") ? false : true
-            item.s3_url = res[i]._source.s3_url.S
-            item.timingData = {}
-            item.timingData.examStart = res[i]._source.timingData.M.examStart.N
-            item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
+          // if (response.data.returnData.result === "ok") {
+            var res = response.data.hits.hits
+            for (var i = 0; i < res.length; i ++) {
+              let item = {};
+              item.id = i
+              item.examId = res[i]._source.PK.S.split("_")[1]
+              item.sessionEmail = res[i]._source.email.S
+              item.sessionId = res[i]._source.sessionId.S
+              item.startTime = new Date(parseInt(res[i]._source.CreatedAt.N)).toLocaleString()
+              item.hasVideo = (res[i]._source.s3_url.S == "" || res[i]._source.s3_url.S == "undefined") ? false : true
+              item.s3_url = res[i]._source.s3_url.S
+              item.timingData = {}
+              item.timingData.examStart = res[i]._source.timingData.M.examStart.N
+              item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
 
-            for (var j = 0; j < res[i]._source.timingData.M.trials.L.length; j ++) {
-              this.trial.trialStart = res[i]._source.timingData.M.trials.L[j].M.trialStart.N
-              this.trial.trialEnd = res[i]._source.timingData.M.trials.L[j].M.trialEnd.N
+              for (var j = 0; j < res[i]._source.timingData.M.trials.L.length; j ++) {
+                this.trial.trialStart = res[i]._source.timingData.M.trials.L[j].M.trialStart.N
+                this.trial.trialEnd = res[i]._source.timingData.M.trials.L[j].M.trialEnd.N
 
-              this.trials.push(this.trial)
-              this.trial = {}
+                this.trials.push(this.trial)
+                this.trial = {}
+              }
+              item.timingData.trials = this.trials
+              this.trials = []
+
+              this.list.push(item)
             }
-            item.timingData.trials = this.trials
-            this.trials = []
-
-            this.list.push(item)
-          }
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }

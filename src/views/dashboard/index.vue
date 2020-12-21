@@ -160,28 +160,32 @@ export default {
             this.loading = true
             axios.get(this.stream_config_url+'/streamConfig').then (response => {
               if (response.status === 200 ) {
-                var streamARN = response.data.returnData.streamARN
-                var streamBuf = streamARN.split("/")[1]
-                var kvsName = streamBuf.split("/")[0]
+                // if (response.data.returnData.result === "ok") {
+                  var streamARN = response.data.returnData.streamARN
+                  var streamBuf = streamARN.split("/")[1]
+                  var kvsName = streamBuf.split("/")[0]
 
-                var signalChannelARN = response.data.returnData.signalChannelARN
-                var signalBuf = signalChannelARN.split("/")[1]
-                var signalName = signalBuf.split("/")[0]
+                  var signalChannelARN = response.data.returnData.signalChannelARN
+                  var signalBuf = signalChannelARN.split("/")[1]
+                  var signalName = signalBuf.split("/")[0]
 
-                this.channelName = signalName
+                  this.channelName = signalName
 
-                localStorage.setItem("streamName", kvsName)
-                localStorage.setItem("signalChannelName", signalName)
-                localStorage.setItem("streamARN", streamARN)
+                  localStorage.setItem("streamName", kvsName)
+                  localStorage.setItem("signalChannelName", signalName)
+                  localStorage.setItem("streamARN", streamARN)
 
-                const localView = document.getElementById('local-view')
-                const remoteView = document.getElementById('remote-view')
-                const formValues = this.getFormValues()
-                startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-                })
+                  const localView = document.getElementById('local-view')
+                  const remoteView = document.getElementById('remote-view')
+                  const formValues = this.getFormValues()
+                  startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
+                  })
 
-                localStorage.setItem("cameraStatus", "on");
-                this.createSession()
+                  localStorage.setItem("cameraStatus", "on");
+                  this.createSession()
+                // } else {
+                //   alert("API Connection Error!")
+                // }
               } else {
                 alert(response.data.userMessage)
               }
@@ -209,13 +213,17 @@ export default {
       
       axios.post(this.server_url+'/session', param, {}).then (response => {
         if (response.status === 200 ) {
-          localStorage.setItem("email", response.data.returnData.email)
-          localStorage.setItem("sessionId", response.data.returnData.sessionId)
+          // if (response.data.returnData.result === "ok") {
+            localStorage.setItem("email", response.data.returnData.email)
+            localStorage.setItem("sessionId", response.data.returnData.sessionId)
 
-          var self = this
-          this.timer = setInterval(function(){ 
-            self.checkMessage()
-          }, 500);
+            var self = this
+            this.timer = setInterval(function(){ 
+              self.checkMessage()
+            }, 500);
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }

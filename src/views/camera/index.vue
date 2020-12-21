@@ -34,7 +34,6 @@
 import { validUsername } from '@/utils/validate'
 import { startMaster, getStreamStatusValue, getStream } from '@/utils/master'
 import { } from '@/config/config'
-import axios from 'axios';
 
 export default {
   name: 'Login',

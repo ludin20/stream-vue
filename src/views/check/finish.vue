@@ -131,11 +131,14 @@ export default {
       this.loading = true
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId"), param).then (response => {
         if (response.status === 200 ) {
-
-          var self = this
-          this.timer = setInterval(function(){ 
-            self.checkMessage()
-          }, 500);
+          // if (response.data.returnData.result === "ok") {
+            var self = this
+            this.timer = setInterval(function(){ 
+              self.checkMessage()
+            }, 500);
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }

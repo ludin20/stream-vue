@@ -150,9 +150,13 @@ export default {
       }
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          clearInterval(this.timer)
-          initialize()
-          this.$router.push({ path: '/finish' })
+          // if (response.data.returnData.result === "ok") {
+            clearInterval(this.timer)
+            initialize()
+            this.$router.push({ path: '/finish' })
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }
@@ -171,8 +175,12 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          localStorage.setItem("examUrl", response.data.returnData.s3_url)
-          this.getData()
+          // if (response.data.returnData.result === "ok") {
+            localStorage.setItem("examUrl", response.data.returnData.s3_url)
+            this.getData()
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }
@@ -184,15 +192,19 @@ export default {
       }
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
         if (response.status === 200 ) {
-          localStorage.setItem("examId", response.data.returnData.examId)
-          let self = this;
-          self.timerLeft = setInterval(function(){ 
-            self.getLeftImages()
-          }, 4.5 * 1000);
+          // if (response.data.returnData.result === "ok") {
+            localStorage.setItem("examId", response.data.returnData.examId)
+            let self = this;
+            self.timerLeft = setInterval(function(){ 
+              self.getLeftImages()
+            }, 4.5 * 1000);
 
-          self.timerRight = setInterval(function(){ 
-            self.getRightImages()
-          }, 4.5 * 1000);
+            self.timerRight = setInterval(function(){ 
+              self.getRightImages()
+            }, 4.5 * 1000);
+          // } else {
+          //   alert("API Connection Error!")
+          // }
         } else {
           alert(response.data.userMessage)
         }
