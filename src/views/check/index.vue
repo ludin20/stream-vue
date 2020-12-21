@@ -194,6 +194,19 @@ export default {
         if (response.status === 200 ) {
           // if (response.data.returnData.result === "ok") {
             localStorage.setItem("examId", response.data.returnData.examId)
+            this.rekognitionStart()
+          // } else {
+          //   alert("API Connection Error!")
+          // }
+        } else {
+          alert(response.data.userMessage)
+        }
+      })
+    },
+    rekognitionStart() {
+      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
+        if (response.status === 200) {
+          // if (response.data.returnData.result === "ok") {
             let self = this;
             self.timerLeft = setInterval(function(){ 
               self.getLeftImages()
