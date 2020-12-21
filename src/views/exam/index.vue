@@ -16,6 +16,7 @@
         border
         fit
         highlight-current-row
+        @sort-change="changeTableSort"
       >
         <el-table-column align="center" label="ID">
           <template slot-scope="scope">
@@ -23,19 +24,19 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="Exam ID" width="500" align="center">
+        <el-table-column prop="Exam ID" label="Exam ID" width="500" align="center">
           <template slot-scope="scope">
             <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.examId }}</a>
           </template>
         </el-table-column>
 
-        <el-table-column label="Session Email" width="500" align="center">
+        <el-table-column prop="Session Email" label="Session Email" width="500" align="center">
           <template slot-scope="scope">
             <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.sessionEmail }}</a>
           </template>
         </el-table-column>
 
-        <el-table-column label="Start Time" width="500" align="center">
+        <el-table-column prop="Start Time" label="Start Time" width="500" align="center" :sortable="'custom'">
           <template slot-scope="scope">
             <a href="javascript:void(0)" @click="goDetail(scope.row.id)">{{ scope.row.startTime }}</a>
           </template>
@@ -56,6 +57,8 @@
 import axios from 'axios'
 import {} from '@/utils/master'
 import { SERVER_URL } from '@/config/config'
+import moment from 'moment'
+
 export default {
   data() {
     return {
@@ -120,6 +123,28 @@ export default {
         }
         this.listLoading = false
       });
+    },
+    changeTableSort(column) {
+      var fieldName = column.prop
+      var sortingType = column.order
+
+      if (fieldName === "Start Time") {
+        this.list.map(item => {
+          item.startTime = moment(item.startTime).valueOf()
+        })
+      }
+
+      if (sortingType === "descending") {
+        this.list = this.list.sort((a, b) => b[fieldName] - a[fieldName])
+      } else {
+        this.list = this.list.sort((a, b) => a[fieldName] - b[fieldName])
+      }
+
+      if (fieldName === "Start Time") {
+        this.list.map(item => {
+          item.startTime = moment(item.startTime).format("YYYY-MM-DD HH:mm:ss")
+        })
+      }
     }
   },
   
