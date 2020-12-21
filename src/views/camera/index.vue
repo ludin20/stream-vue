@@ -3,6 +3,7 @@
     <el-form class="login-form" auto-complete="on" label-position="left">
       <el-form-item>
         <img class="logo" src="../../assets/Logo.png">
+        <el-button @click="onCancel" style="float: right;">Quit</el-button>
         <el-col :span="24">
           <h3 class="title" style="">Eyes on Patient</h3>
         </el-col>
@@ -18,7 +19,6 @@
             <el-col :span="7">.</el-col>
             <el-col :span="2">
               <el-button :loading="loading" type="primary" style="margin-top: 50px" @click.native.prevent="handleStart">Start</el-button>
-              <!-- <el-button :loading="loading" type="primary" style="margin-top: 50px" @click.native.prevent="handleExam">Exam</el-button> -->
             </el-col>
           </el-form-item>
         </el-col>
@@ -74,6 +74,12 @@ export default {
     }
   },
   methods: {
+    async onCancel() {
+      stopMaster()
+      localStorage.clear()
+      await this.$store.dispatch('user/logout')
+      window.location.href = "/"
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -87,9 +93,6 @@ export default {
     handleStart() {
       this.$router.push({ path: '/check' })  
     },
-    // handleExam() {
-    //   this.$router.push({ path: '/exam' }) 
-    // },
     onStatsReport(report) {
       // TODO: Publish stats
     },
