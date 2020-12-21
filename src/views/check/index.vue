@@ -126,7 +126,7 @@ export default {
       if (result) {
         clearInterval(this.timer)
         var result = getTimeRange()
-        this.getVideoClip(result.startTime, result.endTime)
+        this.rekognitionStop()
       }
     },
     getData() {
@@ -161,6 +161,23 @@ export default {
           alert(response.data.userMessage)
         }
       });
+    },
+    rekognitionStop() {
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
+        if (response.status === 200) {
+          // if (response.data.returnData.result === "ok") {
+            this.getVideoClip(result.startTime, result.endTime)
+          // } else {
+          //   alert("API Connection Error!")
+          // }
+        } else {
+          alert(response.data.userMessage)
+        }
+      })
     },
     getVideoClip(startTime, endTime) {
       let param = {
@@ -204,6 +221,10 @@ export default {
       })
     },
     rekognitionStart() {
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
+      }
+
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
         if (response.status === 200) {
           // if (response.data.returnData.result === "ok") {
