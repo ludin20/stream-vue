@@ -9,6 +9,12 @@
         </el-col>
       </el-form-item>
       
+      <el-col :span="1" class="search-container" style="margin-right: 6px">
+        <el-button type="primary" @click.native.prevent="search">search</el-button>
+      </el-col>
+      <el-col :span="2" class="search-container">
+        <el-input type="text" :span="1" placeholder="searchKey" v-model="form.searchKey"></el-input>
+      </el-col>
       <el-table
         v-loading="listLoading"
         :data="list"
@@ -63,7 +69,9 @@ export default {
   data() {
     return {
       server_url: SERVER_URL,
-      form: {},
+      form: {
+        searchKey: ''
+      },
       trial: {
         trialStart: '',
         trialEnd: ''
@@ -117,9 +125,11 @@ export default {
             }
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
         this.listLoading = false
       });
@@ -145,6 +155,8 @@ export default {
           item.startTime = moment(item.startTime).format("YYYY-MM-DD HH:mm:ss")
         })
       }
+    },
+    search(e) {
     }
   },
   
@@ -203,6 +215,10 @@ export default {
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
 {
   opacity: 0;
+}
+
+.search-container {
+  float: right;
 }
 </style>
 

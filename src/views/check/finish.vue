@@ -138,9 +138,11 @@ export default {
             }, 500);
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
       })
     },
