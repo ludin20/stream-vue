@@ -32,7 +32,7 @@
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
-import { startMaster, getStreamStatusValue, getStream } from '@/utils/master'
+import { startMaster, stopMaster, getStreamStatusValue, getStream } from '@/utils/master'
 import { } from '@/config/config'
 
 export default {
