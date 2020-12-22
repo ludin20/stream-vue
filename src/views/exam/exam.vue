@@ -74,7 +74,8 @@ export default {
       src: this.form.s3_url,
       plugins: {
         dataServices: [
-          'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',
+          // 'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',
+          'https://eyesdemo.s3.amazonaws.com/examclips/admin%40gmail.com/0de2823c-5801-4273-91f5-83ae633cb5ce/1.json',
           'https://eyesdemo.s3.amazonaws.com/amalia01-ball.json'
         ],
         list: [{

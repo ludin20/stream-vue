@@ -46,7 +46,8 @@
 <script>
 import axios from 'axios'
 import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize, stopMaster } from '@/utils/master'
-import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
+import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
+import AWS from 'aws-sdk'
 export default {
   data() {
     return {
@@ -69,7 +70,9 @@ export default {
       isLoaded: false,
       resultSaving: false,
       startTime: '',
-      endTime: ''
+      endTime: '',
+      secret_key: SECRET_KEY,
+      access_key_id: ACCESS_KEY_ID,
     }
   },
   methods: {
@@ -130,7 +133,8 @@ export default {
         var result = getTimeRange()
         this.startTime = result.startTime
         this.endTime = result.endTime
-        this.readData()
+        // this.readData()
+        this.rekognitionStop()
       }
     },
     getData() {
@@ -155,9 +159,7 @@ export default {
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
           // if (response.data.returnData.result === "ok") {
-            clearInterval(this.timer)
-            initialize()
-            this.$router.push({ path: '/finish' })
+            this.makeJSONData()
           // } else {
           //   alert("API Connection Error!")
           //   this.onCancel()
@@ -168,21 +170,87 @@ export default {
         }
       });
     },
-    readData() {
-      axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
-        if (response.status === 200) {
-          // if (reponse.data.returnData.result === "ok") {
-          this.rekognitionStop()
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
-        } else {
-          alert(response.data.userMessage)
-          this.onCancel()
-        }
-      })
+    makeJSONData() {
+      // var dict = {
+      //   "localisation": [
+      //     {
+      //       "sublocalisations": {
+      //         "localisation": [
+      //           {
+      //             "label": "A demo label !",
+      //             "tc": "00:00:05.0000",
+      //             "tclevel": 1
+      //           }
+      //         ]
+      //       },
+      //       "type": "fake",
+      //       "tcin": "00:00:00.0000",
+      //       "tcout": "00:01:00.0000",
+      //       "tclevel": 0
+      //     }
+      //   ],
+      //   "id": "events-amalia01",
+      //   "type": "fake",
+      //   "algorithm": "demo-json-generator",
+      //   "processor": "Ina Research Department - N. HERVE",
+      //   "processed": 1418900533632,
+      //   "version": 1
+      // }
+
+      // dict.localisation[0].sublocalisations.localisation.push({
+      //   "label": "A demo label !",
+      //   "tc": "00:00:10.0000",
+      //   "tclevel": 1
+      // })
+
+      // dict.localisation[0].sublocalisations.localisation.push({
+      //   "label": "A demo label !",
+      //   "tc": "00:00:15.0000",
+      //   "tclevel": 1
+      // })
+
+      // var jsonFileContent = JSON.stringify(dict)
+      // var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
+      // AWS.config = new AWS.Config()
+      // AWS.config.accessKeyId = this.access_key_id
+      // AWS.config.secretAccessKey = this.secret_key
+      // AWS.config.region = "us-east-1";
+      // var s3 = new AWS.S3({
+      //   apiVersion: '2006-03-01',
+      //   params: {Bucket: "eyesdemo"}
+      // });
+
+      // s3.upload({
+      //   Key: "examclips/admin@gmail.com/0de2823c-5801-4273-91f5-83ae633cb5ce/1.json",
+      //   Body: jsonFileContent,
+      //   ACL: 'public-read'
+      //   }, function(err, data) {
+      //   if(err) {
+      //     console.log(err)
+      //   } else {
+      //     console.log('Successfully Uploaded!')
+      //   }
+      // });
+
+      clearInterval(this.timer)
+      initialize()
+      this.$router.push({ path: '/finish' })
     },
+    // readData() {
+    //   axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
+    //     if (response.status === 200) {
+    //       // if (reponse.data.returnData.result === "ok") {
+    //       this.rekognitionStop()
+    //       // } else {
+    //       //   alert("API Connection Error!")
+    //       //   this.onCancel()
+    //       // }
+    //     } else {
+    //       alert(response.data.userMessage)
+    //       this.onCancel()
+    //     }
+    //   })
+    // },
     rekognitionStop() {
       var param = {
         "streamProcessorName": localStorage.getItem("streamProcessorName")
@@ -249,7 +317,8 @@ export default {
     },
     rekognitionStart() {
       var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName")
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "streamARN": localStorage.getItem("streamARN")
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {

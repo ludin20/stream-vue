@@ -86,8 +86,8 @@
 import { validUsername } from '@/utils/validate'
 import { startMaster, stopMaster, getStreamStatusValue } from '@/utils/master'
 import { SERVER_URL, STREAM_CONFIG_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
-import axios from 'axios';
-
+import axios from 'axios'
+import AWS from 'aws-sdk'
 export default {
   name: 'Login',
   data() {
