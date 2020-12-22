@@ -45,7 +45,7 @@
 
 <script>
 import axios from 'axios'
-import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize } from '@/utils/master'
+import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize, stopMaster } from '@/utils/master'
 import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL} from '@/config/config'
 export default {
   data() {
@@ -130,7 +130,7 @@ export default {
         var result = getTimeRange()
         this.startTime = result.startTime
         this.endTime = result.endTime
-        this.rekognitionStop()
+        this.readData()
       }
     },
     getData() {
@@ -160,11 +160,28 @@ export default {
             this.$router.push({ path: '/finish' })
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
       });
+    },
+    readData() {
+      axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
+        if (response.status === 200) {
+          // if (reponse.data.returnData.result === "ok") {
+          this.rekognitionStop()
+          // } else {
+          //   alert("API Connection Error!")
+          //   this.onCancel()
+          // }
+        } else {
+          alert(response.data.userMessage)
+          this.onCancel()
+        }
+      })
     },
     rekognitionStop() {
       var param = {
@@ -174,23 +191,14 @@ export default {
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
         if (response.status === 200) {
           // if (response.data.returnData.result === "ok") {
-            this.readData()
-          // } else {
-          //   alert("API Connection Error!")
-          // }
-        } else {
-          alert(response.data.userMessage)
-        }
-      })
-    },
-    readData() {
-      axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
-        if (response.status === 200) {
-          // if (reponse.data.returnData.result === "ok") {
             this.getVideoClip(this.startTime, this.endTime)
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
+        } else {
+          alert(response.data.userMessage)
+          this.onCancel()
         }
       })
     },
@@ -212,9 +220,11 @@ export default {
             this.getData()
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
       });
     },
@@ -229,9 +239,11 @@ export default {
             this.rekognitionStart()
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
       })
     },
@@ -253,9 +265,11 @@ export default {
             }, 4.5 * 1000);
           // } else {
           //   alert("API Connection Error!")
+          //   this.onCancel()
           // }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
         }
       })
     }
