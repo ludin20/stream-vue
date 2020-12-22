@@ -84,7 +84,7 @@
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
-import { startMaster, getStreamStatusValue } from '@/utils/master'
+import { startMaster, stopMaster, getStreamStatusValue } from '@/utils/master'
 import { SERVER_URL, STREAM_CONFIG_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
 import axios from 'axios';
 
@@ -142,6 +142,13 @@ export default {
     }
   },
   methods: {
+    async onCancel() {
+      if (localStorage.getItem("cameraStatus") === "on")
+        stopMaster()
+      localStorage.clear()
+      await this.$store.dispatch('user/logout')
+      window.location.href = "/"
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -181,13 +188,15 @@ export default {
                   startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
                   })
 
-                  localStorage.setItem("cameraStatus", "on");
+                  localStorage.setItem("cameraStatus", "on")
                   this.createSession()
                 // } else {
                 //   alert("API Connection Error!")
+                //   this.onCancel()
                 // }
               } else {
                 alert(response.data.userMessage)
+                this.onCancel()
               }
             })
           }).catch(() => {
@@ -216,7 +225,7 @@ export default {
           // if (response.data.returnData.result === "ok") {
             localStorage.setItem("email", response.data.returnData.email)
             localStorage.setItem("sessionId", response.data.returnData.sessionId)
-
+            localStorage.setItem("streamProcessorName", response.data.returnData.streamProcessorName)
             var self = this
             this.timer = setInterval(function(){ 
               self.checkMessage()
