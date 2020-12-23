@@ -107,9 +107,26 @@ export default {
     async onCancel() {
       if (localStorage.getItem("cameraStatus") == "on")
         stopMaster()
-      localStorage.clear()
+      
       await this.$store.dispatch('user/logout')
-      window.location.href = "/"
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
+      }
+
+      axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
+        if (response.status === 200) {
+          // if (response.data.returnData.result === "ok") {
+          localStorage.clear()
+          window.location.href = "/"
+          // } else {
+          //   alert("API Connection Error!")
+          //   this.onCancel()
+          // }
+        } else {
+          alert(response.data.userMessage)
+          this.onCancel()
+        }
+      })
     },
     showPwd() {
       if (this.passwordType === 'password') {
