@@ -133,11 +133,10 @@ export default {
         var result = getTimeRange()
         this.startTime = result.startTime
         this.endTime = result.endTime
-        // this.readData()
         this.rekognitionStop()
       }
     },
-    getData() {
+    getData(rekogData) {
       var result = getStreamTimes()
       this.times = result
       for (var i = 0; i < this.times.length - 1; i ++) {
@@ -159,7 +158,8 @@ export default {
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
           // if (response.data.returnData.result === "ok") {
-            this.makeJSONData()
+
+            this.makeJSONData(rekogData)
           // } else {
           //   alert("API Connection Error!")
           //   this.onCancel()
@@ -170,96 +170,358 @@ export default {
         }
       });
     },
-    makeJSONData() {
-      // var dict = {
-      //   "localisation": [
-      //     {
-      //       "sublocalisations": {
-      //         "localisation": [
-      //           {
-      //             "label": "A demo label !",
-      //             "tc": "00:00:05.0000",
-      //             "tclevel": 1
-      //           }
-      //         ]
-      //       },
-      //       "type": "fake",
-      //       "tcin": "00:00:00.0000",
-      //       "tcout": "00:01:00.0000",
-      //       "tclevel": 0
-      //     }
-      //   ],
-      //   "id": "events-amalia01",
-      //   "type": "fake",
-      //   "algorithm": "demo-json-generator",
-      //   "processor": "Ina Research Department - N. HERVE",
-      //   "processed": 1418900533632,
-      //   "version": 1
-      // }
+    makeJSONData(rekogData) {
+      console.log(rekogData)
+      var data = JSON.parse(rekogData)
+      var noFaceData = [], oneFaceData = [], moreFaceData = []
+      var rekogData1 = data.sort((a, b) => (a.PK > b.PK) ? 1 : -1)
+      
+      var tcout = '', tcin = this.msToHMS(parseInt(rekogData1[0].PK) - parseInt(this.startTime))
+      var flag = 1
+      var tArray = [], eArray = []
+      for (var i = 0; i < rekogData1.length; i ++) {
+        if(rekogData1[i + 1]) {
+          if (rekogData1[i].DetectedFaces === rekogData1[i + 1].DetectedFaces) {
 
-      // dict.localisation[0].sublocalisations.localisation.push({
-      //   "label": "A demo label !",
-      //   "tc": "00:00:10.0000",
-      //   "tclevel": 1
-      // })
+          } else {
+            flag++
+            tcout = this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime))
+            eArray.push({'tcin': tcin, 'tcout': tcout, "tclevel": 1})
+            if(rekogData1[i].DetectedFaces === '0')
+              noFaceData.push(eArray) 
+            else if(rekogData1[i].DetectedFaces === '1')
+              oneFaceData.push(eArray)
+            else
+              moreFaceData.push(eArray)
+            eArray = []
+            tcin = this.msToHMS(parseInt(rekogData1[i + 1].PK) - parseInt(this.startTime))
+            tcout = ''
+          } 
+        } else {
+          if(flag === 1) {
+            eArray.push({'tcin': this.msToHMS(parseInt(rekogData1[0].PK) - parseInt(this.startTime)), 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
+          } else if (flag === 2) {
+            eArray.push({'tcin': tcin, 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
+          } else {
+            eArray.push({'tcin': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
+          }
+          if(rekogData1[i].DetectedFaces === '0')
+            noFaceData.push(eArray)
+          else if(rekogData1[i].DetectedFaces === '1')
+            oneFaceData.push(eArray)
+          else
+            moreFaceData.push(eArray)
+        }
+      }
 
-      // dict.localisation[0].sublocalisations.localisation.push({
-      //   "label": "A demo label !",
-      //   "tc": "00:00:15.0000",
-      //   "tclevel": 1
-      // })
-
-      // var jsonFileContent = JSON.stringify(dict)
-      // var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
-      // AWS.config = new AWS.Config()
-      // AWS.config.accessKeyId = this.access_key_id
-      // AWS.config.secretAccessKey = this.secret_key
-      // AWS.config.region = "us-east-1";
-      // var s3 = new AWS.S3({
-      //   apiVersion: '2006-03-01',
-      //   params: {Bucket: "eyesdemo"}
-      // });
-
-      // s3.upload({
-      //   Key: "examclips/admin@gmail.com/0de2823c-5801-4273-91f5-83ae633cb5ce/1.json",
-      //   Body: jsonFileContent,
-      //   ACL: 'public-read'
-      //   }, function(err, data) {
-      //   if(err) {
-      //     console.log(err)
-      //   } else {
-      //     console.log('Successfully Uploaded!')
-      //   }
-      // });
-
-      clearInterval(this.timer)
-      initialize()
-      this.$router.push({ path: '/finish' })
+      console.log(noFaceData, "1111111")
+      console.log(oneFaceData, "222222")
+      console.log(moreFaceData, "333333")
+      this.uploadNoFaceJSONData(noFaceData, oneFaceData, moreFaceData)
     },
-    // readData() {
-    //   axios.get(this.server_url+'/session/'+this.sessionId+"/rekog/start").then (response => {
-    //     if (response.status === 200) {
-    //       // if (reponse.data.returnData.result === "ok") {
-    //       this.rekognitionStop()
-    //       // } else {
-    //       //   alert("API Connection Error!")
-    //       //   this.onCancel()
-    //       // }
-    //     } else {
-    //       alert(response.data.userMessage)
-    //       this.onCancel()
-    //     }
-    //   })
-    // },
+    uploadNoFaceJSONData(noFaceData, oneFaceData, moreFaceData) {
+      var dict = {
+        "localisation": [
+          {
+            "sublocalisations": {
+              "localisation": [
+                // {
+                //   "tcin": "00:00:01.6800",
+                //   "tcout": "00:00:03.3600",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:05.0400",
+                //   "tcout": "00:00:06.7200",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:08.4000",
+                //   "tcout": "00:00:10.0800",
+                //   "tclevel": 1
+                // }
+              ]
+            },
+            "type": "segments",
+            "tcin": "00:00:00.0000",
+            "tcout": "00:00:15.0000",
+            "tclevel": 0
+          }
+        ],
+        "id": "noFaceData",
+        "type": "segments",
+        "algorithm": "demo-video-generator",
+        "processor": "Ina Research Department - N. HERVE",
+        "processed": 1421141589286,
+        "version": 1
+      }
+
+      for (var i = 0; i < noFaceData.length; i ++) {
+        dict.localisation[0].sublocalisations.localisation.push(noFaceData[i][0])
+      }
+
+      var jsonFileContent = JSON.stringify(dict)
+      var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+      var s3 = new AWS.S3({
+        apiVersion: '2006-03-01',
+        params: {Bucket: "eyesdemo"}
+      });
+
+      var self = this
+      s3.upload({
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "noFaceData.json",
+        Body: jsonFileContent,
+        ACL: 'public-read'
+        }, function(err, data) {
+        if(err) {
+          console.log(err)
+        } else {
+          self.uploadOneFaceJSONData(oneFaceData, moreFaceData)
+        }
+      });
+      
+    },
+    uploadOneFaceJSONData(oneFaceData, moreFaceData) {
+      var dict = {
+        "localisation": [
+          {
+            "sublocalisations": {
+              "localisation": [
+                // {
+                //   "tcin": "00:00:01.6800",
+                //   "tcout": "00:00:03.3600",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:05.0400",
+                //   "tcout": "00:00:06.7200",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:08.4000",
+                //   "tcout": "00:00:10.0800",
+                //   "tclevel": 1
+                // }
+              ]
+            },
+            "type": "segments",
+            "tcin": "00:00:00.0000",
+            "tcout": "00:00:15.0000",
+            "tclevel": 0
+          }
+        ],
+        "id": "oneFaceData",
+        "type": "segments",
+        "algorithm": "demo-video-generator",
+        "processor": "Ina Research Department - N. HERVE",
+        "processed": 1421141589286,
+        "version": 1
+      }
+
+      for (var i = 0; i < oneFaceData.length; i ++) {
+        dict.localisation[0].sublocalisations.localisation.push(oneFaceData[i][0])
+      }
+
+      var jsonFileContent = JSON.stringify(dict)
+      var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+      var s3 = new AWS.S3({
+        apiVersion: '2006-03-01',
+        params: {Bucket: "eyesdemo"}
+      });
+
+      var self = this
+      s3.upload({
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "oneFaceData.json",
+        Body: jsonFileContent,
+        ACL: 'public-read'
+        }, function(err, data) {
+        if(err) {
+          console.log(err)
+        } else {
+          self.uploadMoreFaceJSONData(moreFaceData)
+        }
+      });
+    },
+    uploadMoreFaceJSONData(moreFaceData) {
+      var dict = {
+        "localisation": [
+          {
+            "sublocalisations": {
+              "localisation": [
+                // {
+                //   "tcin": "00:00:01.6800",
+                //   "tcout": "00:00:03.3600",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:05.0400",
+                //   "tcout": "00:00:06.7200",
+                //   "tclevel": 1
+                // },
+                // {
+                //   "tcin": "00:00:08.4000",
+                //   "tcout": "00:00:10.0800",
+                //   "tclevel": 1
+                // }
+              ]
+            },
+            "type": "segments",
+            "tcin": "00:00:00.0000",
+            "tcout": "00:00:15.0000",
+            "tclevel": 0
+          }
+        ],
+        "id": "moreFaceData",
+        "type": "segments",
+        "algorithm": "demo-video-generator",
+        "processor": "Ina Research Department - N. HERVE",
+        "processed": 1421141589286,
+        "version": 1
+      }
+
+
+      for (var i = 0; i < moreFaceData.length; i ++) {
+        dict.localisation[0].sublocalisations.localisation.push(moreFaceData[i][0])
+      }
+
+      var jsonFileContent = JSON.stringify(dict)
+      var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+      var s3 = new AWS.S3({
+        apiVersion: '2006-03-01',
+        params: {Bucket: "eyesdemo"}
+      });
+
+      var self = this
+      s3.upload({
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "moreFaceData.json",
+        Body: jsonFileContent,
+        ACL: 'public-read'
+        }, function(err, data) {
+        if(err) {
+          console.log(err)
+        } else {
+          self.uploadTrialJSONData()
+          clearInterval(self.timer)
+          initialize()
+          self.$router.push({ path: '/finish' })
+        }
+      });
+    },
+    uploadTrialJSONData() {
+      var dict = {
+        "localisation": [
+          {
+            "sublocalisations": {
+              "localisation": [
+                {
+                  "label": "trial!",
+                  "tc": "00:00:04.0000",
+                  "tclevel": 1
+                },
+                {
+                  "label": "trial!",
+                  "tc": "00:00:08.0000",
+                  "tclevel": 1
+                },
+                {
+                  "label": "trial!",
+                  "tc": "00:00:12.0000",
+                  "tclevel": 1
+                },
+                {
+                  "label": "trial!",
+                  "tc": "00:00:16.0000",
+                  "tclevel": 1
+                },
+                {
+                  "label": "trial!",
+                  "tc": "00:00:20.0000",
+                  "tclevel": 1
+                }
+              ]
+            },
+            "type": "fake",
+            "tcin": "00:00:00.0000",
+            "tcout": "00:01:00.0000",
+            "tclevel": 0
+          }
+        ],
+        "id": "trialData",
+        "type": "fake",
+        "algorithm": "demo-json-generator",
+        "processor": "Ina Research Department - N. HERVE",
+        "processed": 1418900533632,
+        "version": 1
+      }
+
+      var jsonFileContent = JSON.stringify(dict)
+      var bufferObject = new Buffer.from(JSON.stringify(jsonFileContent))
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+      var s3 = new AWS.S3({
+        apiVersion: '2006-03-01',
+        params: {Bucket: "eyesdemo"}
+      });
+
+      var self = this
+      s3.upload({
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "trialData.json",
+        Body: jsonFileContent,
+        ACL: 'public-read'
+        }, function(err, data) {
+        if(err) {
+          console.log(err)
+        } else {
+          clearInterval(self.timer)
+          initialize()
+          self.$router.push({ path: '/finish' })
+        }
+      });
+    },
+    msToHMS( ms ) {
+      var seconds = ms / 1000;
+      var hours = parseInt( seconds / 3600 ) + ""; // 3,600 seconds in 1 hour
+      seconds = seconds % 3600; // seconds remaining after extracting hours
+      var minutes = parseInt( seconds / 60 ) + ""; // 60 seconds in 1 minute
+      seconds = seconds % 60 + "";
+
+      if (hours.length === 1) 
+        hours = "0" + hours
+
+      if (minutes.length === 1)
+        minutes = "0" + minutes
+
+      if (seconds.split(".")[0].length === 1)
+        seconds = "0" + seconds.split(".")[0] + "." + seconds.split(".")[1]
+
+      return hours+":"+minutes+":"+seconds
+    },
     rekognitionStop() {
       var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName")
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "StartTimestamp" : this.startTime,
+        "EndTimestamp" : this.endTime
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
         if (response.status === 200) {
           // if (response.data.returnData.result === "ok") {
-            this.getVideoClip(this.startTime, this.endTime)
+            var rekogData = response.data.returnData
+            this.getVideoClip(this.startTime, this.endTime, rekogData)
           // } else {
           //   alert("API Connection Error!")
           //   this.onCancel()
@@ -270,7 +532,7 @@ export default {
         }
       })
     },
-    getVideoClip(startTime, endTime) {
+    getVideoClip(startTime, endTime, rekogData) {
       let param = {
         "streamName": localStorage.getItem("streamName"),
         "streamARN": localStorage.getItem("streamARN"),
@@ -285,7 +547,7 @@ export default {
         if (response.status === 200 ) {
           // if (response.data.returnData.result === "ok") {
             localStorage.setItem("examUrl", response.data.returnData.s3_url)
-            this.getData()
+            this.getData(rekogData)
           // } else {
           //   alert("API Connection Error!")
           //   this.onCancel()
@@ -317,8 +579,7 @@ export default {
     },
     rekognitionStart() {
       var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName"),
-        "streamARN": localStorage.getItem("streamARN")
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
