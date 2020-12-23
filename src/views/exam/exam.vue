@@ -53,7 +53,8 @@ export default {
         sessionId: '',
         examId: '',
         s3_url: '',
-        trial: ''
+        trial: '',
+        sessionEmail: ''
       }
     }
   },
@@ -74,9 +75,10 @@ export default {
       src: this.form.s3_url,
       plugins: {
         dataServices: [
-          // 'https://eyesdemo.s3.amazonaws.com/amalia01-events.json',
-          'https://eyesdemo.s3.amazonaws.com/examclips/admin%40gmail.com/0de2823c-5801-4273-91f5-83ae633cb5ce/1.json',
-          'https://eyesdemo.s3.amazonaws.com/amalia01-ball.json'
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'trialData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'noFaceData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'oneFaceData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'moreFaceData.json',
         ],
         list: [{
           'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
@@ -86,15 +88,27 @@ export default {
               {
                 title: 'Events',
                 type: 'cuepoint',
-                metadataId: 'events-amalia01',
-                color: '#3CF',
+                metadataId: 'trialData',
+                color: 'yellow',
                 pointNav: true
               }, 
               {
-                title: 'Ball moving up',
+                title: 'noFaceEvents',
                 type: 'segment',
-                metadataId: 'ball-amalia01',
-                color: '#F00'
+                metadataId: 'noFaceData',
+                color: 'red'
+              }, 
+              {
+                title: 'oneFaceEvents',
+                type: 'segment',
+                metadataId: 'oneFaceData',
+                color: 'green'
+              }, 
+              {
+                title: 'moreFaceEvents',
+                type: 'segment',
+                metadataId: 'moreFaceData',
+                color: 'blue'
               }, 
             ]
           }
@@ -104,6 +118,8 @@ export default {
   },
   created() {
     var obj = JSON.parse(localStorage.getItem("exam"))
+
+    this.form.sessionEmail = obj.sessionEmail
     this.form.sessionId = obj.sessionId
     this.form.examId = obj.examId
     this.form.s3_url = obj.s3_url
