@@ -104,7 +104,7 @@ export default {
               item.examId = res[i]._source.PK.S.split("_")[1]
               item.sessionEmail = res[i]._source.email.S
               item.sessionId = res[i]._source.sessionId.S
-              item.startTime = new Date(parseInt(res[i]._source.CreatedAt.N)).toLocaleString()
+              item.startTime = new Date(parseInt(res[i]._source.createdAt.N)).toLocaleString()
               item.hasVideo = (res[i]._source.s3_url.S == "" || res[i]._source.s3_url.S == "undefined") ? false : true
               item.s3_url = res[i]._source.s3_url.S
               item.timingData = {}

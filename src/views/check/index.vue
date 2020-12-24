@@ -171,52 +171,19 @@ export default {
       });
     },
     makeJSONData(rekogData) {
-      console.log(rekogData)
       var data = JSON.parse(rekogData)
       var noFaceData = [], oneFaceData = [], moreFaceData = []
-      var rekogData1 = data.sort((a, b) => (a.PK > b.PK) ? 1 : -1)
       
-      var tcout = '', tcin = this.msToHMS(parseInt(rekogData1[0].PK) - parseInt(this.startTime))
-      var flag = 1
-      var tArray = [], eArray = []
-      for (var i = 0; i < rekogData1.length; i ++) {
-        if(rekogData1[i + 1]) {
-          if (rekogData1[i].DetectedFaces === rekogData1[i + 1].DetectedFaces) {
-
-          } else {
-            flag++
-            tcout = this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime))
-            eArray.push({'tcin': tcin, 'tcout': tcout, "tclevel": 1})
-            if(rekogData1[i].DetectedFaces === '0')
-              noFaceData.push(eArray) 
-            else if(rekogData1[i].DetectedFaces === '1')
-              oneFaceData.push(eArray)
-            else
-              moreFaceData.push(eArray)
-            eArray = []
-            tcin = this.msToHMS(parseInt(rekogData1[i + 1].PK) - parseInt(this.startTime))
-            tcout = ''
-          } 
+      for (var i = 0; i < data.length; i ++) {
+        if (data[i].DetectedFaceCount === "0") {
+          noFaceData.push({'tcin': this.msToHMS(data[i].SegmentStartOffsetSeconds), 'tcout': this.msToHMS(data[i].SegmentEndOffsetSeconds), 'tclevel': 1})
+        } else if (data[i].DetectedFaceCount === "1") {
+          oneFaceData.push({'tcin': this.msToHMS(data[i].SegmentStartOffsetSeconds), 'tcout': this.msToHMS(data[i].SegmentEndOffsetSeconds), 'tclevel': 1})
         } else {
-          if(flag === 1) {
-            eArray.push({'tcin': this.msToHMS(parseInt(rekogData1[0].PK) - parseInt(this.startTime)), 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
-          } else if (flag === 2) {
-            eArray.push({'tcin': tcin, 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
-          } else {
-            eArray.push({'tcin': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), 'tcout': this.msToHMS(parseInt(rekogData1[i].PK) - parseInt(this.startTime)), "tclevel": 1})
-          }
-          if(rekogData1[i].DetectedFaces === '0')
-            noFaceData.push(eArray)
-          else if(rekogData1[i].DetectedFaces === '1')
-            oneFaceData.push(eArray)
-          else
-            moreFaceData.push(eArray)
+          moreFaceData.push({'tcin': this.msToHMS(data[i].SegmentStartOffsetSeconds), 'tcout': this.msToHMS(data[i].SegmentEndOffsetSeconds), 'tclevel': 1})
         }
       }
 
-      console.log(noFaceData, "1111111")
-      console.log(oneFaceData, "222222")
-      console.log(moreFaceData, "333333")
       this.uploadNoFaceJSONData(noFaceData, oneFaceData, moreFaceData)
     },
     uploadNoFaceJSONData(noFaceData, oneFaceData, moreFaceData) {
@@ -224,23 +191,7 @@ export default {
         "localisation": [
           {
             "sublocalisations": {
-              "localisation": [
-                // {
-                //   "tcin": "00:00:01.6800",
-                //   "tcout": "00:00:03.3600",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:05.0400",
-                //   "tcout": "00:00:06.7200",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:08.4000",
-                //   "tcout": "00:00:10.0800",
-                //   "tclevel": 1
-                // }
-              ]
+              "localisation": []
             },
             "type": "segments",
             "tcin": "00:00:00.0000",
@@ -257,7 +208,7 @@ export default {
       }
 
       for (var i = 0; i < noFaceData.length; i ++) {
-        dict.localisation[0].sublocalisations.localisation.push(noFaceData[i][0])
+        dict.localisation[0].sublocalisations.localisation.push(noFaceData[i])
       }
 
       var jsonFileContent = JSON.stringify(dict)
@@ -283,30 +234,13 @@ export default {
           self.uploadOneFaceJSONData(oneFaceData, moreFaceData)
         }
       });
-      
     },
     uploadOneFaceJSONData(oneFaceData, moreFaceData) {
       var dict = {
         "localisation": [
           {
             "sublocalisations": {
-              "localisation": [
-                // {
-                //   "tcin": "00:00:01.6800",
-                //   "tcout": "00:00:03.3600",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:05.0400",
-                //   "tcout": "00:00:06.7200",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:08.4000",
-                //   "tcout": "00:00:10.0800",
-                //   "tclevel": 1
-                // }
-              ]
+              "localisation": []
             },
             "type": "segments",
             "tcin": "00:00:00.0000",
@@ -323,7 +257,7 @@ export default {
       }
 
       for (var i = 0; i < oneFaceData.length; i ++) {
-        dict.localisation[0].sublocalisations.localisation.push(oneFaceData[i][0])
+        dict.localisation[0].sublocalisations.localisation.push(oneFaceData[i])
       }
 
       var jsonFileContent = JSON.stringify(dict)
@@ -355,23 +289,7 @@ export default {
         "localisation": [
           {
             "sublocalisations": {
-              "localisation": [
-                // {
-                //   "tcin": "00:00:01.6800",
-                //   "tcout": "00:00:03.3600",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:05.0400",
-                //   "tcout": "00:00:06.7200",
-                //   "tclevel": 1
-                // },
-                // {
-                //   "tcin": "00:00:08.4000",
-                //   "tcout": "00:00:10.0800",
-                //   "tclevel": 1
-                // }
-              ]
+              "localisation": []
             },
             "type": "segments",
             "tcin": "00:00:00.0000",
@@ -387,9 +305,8 @@ export default {
         "version": 1
       }
 
-
       for (var i = 0; i < moreFaceData.length; i ++) {
-        dict.localisation[0].sublocalisations.localisation.push(moreFaceData[i][0])
+        dict.localisation[0].sublocalisations.localisation.push(moreFaceData[i])
       }
 
       var jsonFileContent = JSON.stringify(dict)
@@ -493,28 +410,37 @@ export default {
       });
     },
     msToHMS( ms ) {
-      var seconds = ms / 1000;
-      var hours = parseInt( seconds / 3600 ) + ""; // 3,600 seconds in 1 hour
-      seconds = seconds % 3600; // seconds remaining after extracting hours
-      var minutes = parseInt( seconds / 60 ) + ""; // 60 seconds in 1 minute
-      seconds = seconds % 60 + "";
+      var str = ''
+      if (ms === 0) {
+        str = "00:00:00"
+      } else {
+        var seconds = ms / 1000;
+        var hours = parseInt( seconds / 3600 ) + "";
+        seconds = seconds % 3600;
+        var minutes = parseInt( seconds / 60 ) + "";
+        seconds = seconds % 60 + "";
 
-      if (hours.length === 1) 
-        hours = "0" + hours
+        if (hours.length === 1) 
+          hours = "0" + hours
 
-      if (minutes.length === 1)
-        minutes = "0" + minutes
+        if (minutes.length === 1)
+          minutes = "0" + minutes
 
-      if (seconds.split(".")[0].length === 1)
-        seconds = "0" + seconds.split(".")[0] + "." + seconds.split(".")[1]
+        if (seconds.split(".")[0].length === 1)
+          seconds = "0" + seconds.split(".")[0] + "." + seconds.split(".")[1]
 
-      return hours+":"+minutes+":"+seconds
+        str = hours+":"+minutes+":"+seconds
+      }
+
+      return str
     },
     rekognitionStop() {
       var param = {
         "streamProcessorName": localStorage.getItem("streamProcessorName"),
         "StartTimestamp" : this.startTime,
-        "EndTimestamp" : this.endTime
+        "EndTimestamp" : this.endTime,
+        "sessionId": localStorage.getItem("sessionId"),
+        "examId": localStorage.getItem("examId"),
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
