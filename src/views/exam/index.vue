@@ -13,7 +13,7 @@
         <el-button type="primary" @click.native.prevent="search">search</el-button>
       </el-col>
       <el-col :span="2" class="search-container">
-        <el-input type="text" :span="1" placeholder="searchKey" v-model="form.searchKey"></el-input>
+        <el-input type="text" :span="1" placeholder="searchEmail" v-model="form.searchKey"></el-input>
       </el-col>
       <el-table
         v-loading="listLoading"
@@ -100,16 +100,16 @@ export default {
             var data = response.data.returnData.ESresult
             data = JSON.parse(JSON.stringify(data))
             var res = JSON.parse(data).hits.hits
-
+  
             for (var i = 0; i < res.length; i ++) {
               let item = {};
               item.id = i
-              item.examId = res[i]._source.PK.S.split("_")[1]
-              item.sessionEmail = res[i]._source.email.S
-              item.sessionId = res[i]._source.sessionId.S
-              item.startTime = new Date(parseInt(res[i]._source.createdAt.N)).toLocaleString()
-              item.hasVideo = (res[i]._source.s3_url.S == "" || res[i]._source.s3_url.S == "undefined") ? false : true
-              item.s3_url = res[i]._source.s3_url.S
+              item.examId = res[i]._source.PK ? res[i]._source.PK.S.split("_")[1] : ""
+              item.sessionEmail = res[i]._source.email ? res[i]._source.email.S : ""
+              item.sessionId = res[i]._source.sessionId ? res[i]._source.sessionId.S : ""
+              item.startTime = res[i]._source.createdAt ? new Date(parseInt(res[i]._source.createdAt.N)).toLocaleString() : ""
+              item.hasVideo = res[i]._source.s3_url ? true : false
+              item.s3_url = res[i]._source.s3_url ? res[i]._source.s3_url.S : ""
               item.timingData = {}
               item.timingData.examStart = res[i]._source.timingData.M.examStart.N
               item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
@@ -160,6 +160,7 @@ export default {
       }
     },
     search(e) {
+      console.log(this.form.searchKey)
     }
   },
   
