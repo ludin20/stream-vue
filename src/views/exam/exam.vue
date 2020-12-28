@@ -42,7 +42,6 @@
 import { } from '@/utils/validate'
 import { } from '@/utils/master'
 import { SERVER_URL } from '@/config/config'
-import axios from 'axios'
 
 export default {
   data() {

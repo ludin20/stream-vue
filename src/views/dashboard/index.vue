@@ -167,7 +167,7 @@ export default {
             this.loading = true
             axios.get(this.stream_config_url+'/streamConfig').then (response => {
               if (response.status === 200 ) {
-                // if (response.data.returnData.result === "ok") {
+                if (response.data.returnData.Result === "OK") {
                   var streamARN = response.data.returnData.streamARN
                   var streamBuf = streamARN.split("/")[1]
                   var kvsName = streamBuf.split("/")[0]
@@ -181,6 +181,7 @@ export default {
                   localStorage.setItem("streamName", kvsName)
                   localStorage.setItem("signalChannelName", signalName)
                   localStorage.setItem("streamARN", streamARN)
+                  localStorage.setItem("signalChannelARN", signalChannelARN)
 
                   const localView = document.getElementById('local-view')
                   const remoteView = document.getElementById('remote-view')
@@ -190,10 +191,10 @@ export default {
 
                   localStorage.setItem("cameraStatus", "on")
                   this.createSession()
-                // } else {
-                //   alert("API Connection Error!")
-                //   this.onCancel()
-                // }
+                } else {
+                  alert("API Connection Error!")
+                  this.onCancel()
+                }
               } else {
                 alert(response.data.userMessage)
                 this.onCancel()
@@ -222,7 +223,7 @@ export default {
       
       axios.post(this.server_url+'/session', param, {}).then (response => {
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
+          if (response.data.returnData.Result === "OK") {
             localStorage.setItem("email", response.data.returnData.email)
             localStorage.setItem("sessionId", response.data.returnData.sessionId)
             localStorage.setItem("streamProcessorName", response.data.returnData.streamProcessorName)
@@ -230,9 +231,9 @@ export default {
             this.timer = setInterval(function(){ 
               self.checkMessage()
             }, 500);
-          // } else {
-          //   alert("API Connection Error!")
-          // }
+          } else {
+            alert("API Connection Error!")
+          }
         } else {
           alert(response.data.userMessage)
         }

@@ -110,18 +110,21 @@ export default {
       
       await this.$store.dispatch('user/logout')
       var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName")
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "signalChannelARN": localStorage.getItem("signalChannelARN")
       }
 
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
         if (response.status === 200) {
-          // if (response.data.returnData.result === "ok") {
-          localStorage.clear()
-          window.location.href = "/"
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          if (response.data.returnData.Result === "OK") {
+            localStorage.clear()
+            window.location.href = "/"
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
@@ -148,15 +151,15 @@ export default {
       this.loading = true
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId"), param).then (response => {
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
+          if (response.data.returnData.Result === "OK") {
             var self = this
             this.timer = setInterval(function(){ 
               self.checkMessage()
             }, 500);
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()

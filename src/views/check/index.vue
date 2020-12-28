@@ -157,13 +157,12 @@ export default {
       }
       axios.put(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
-
+          if (response.data.returnData.Result === "OK") {
             this.makeJSONData(rekogData)
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
@@ -171,7 +170,8 @@ export default {
       });
     },
     makeJSONData(rekogData) {
-      var data = JSON.parse(rekogData)
+      // var data = JSON.parse(rekogData)
+      var data = rekogData
       var noFaceData = [], oneFaceData = [], moreFaceData = []
       
       for (var i = 0; i < data.length; i ++) {
@@ -441,17 +441,21 @@ export default {
         "EndTimestamp" : this.endTime,
         "sessionId": localStorage.getItem("sessionId"),
         "examId": localStorage.getItem("examId"),
+        "streamName": localStorage.getItem("streamName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "signalChannelARN": localStorage.getItem("signalChannelARN")
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
         if (response.status === 200) {
-          // if (response.data.returnData.result === "ok") {
-            var rekogData = response.data.returnData
+          if (response.data.returnData.Result === "OK") {
+            var rekogData = response.data.returnData.final_data
             this.getVideoClip(this.startTime, this.endTime, rekogData)
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
@@ -471,13 +475,13 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
+          if (response.data.returnData.Result === "OK") {
             localStorage.setItem("examUrl", response.data.returnData.s3_url)
             this.getData(rekogData)
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
@@ -490,13 +494,13 @@ export default {
       }
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
+          if (response.data.returnData.Result === "OK") {
             localStorage.setItem("examId", response.data.returnData.examId)
             this.rekognitionStart()
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
@@ -510,7 +514,7 @@ export default {
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
         if (response.status === 200) {
-          // if (response.data.returnData.result === "ok") {
+          if (response.data.returnData.Result === "OK") {
             let self = this;
             self.timerLeft = setInterval(function(){ 
               self.getLeftImages()
@@ -519,10 +523,10 @@ export default {
             self.timerRight = setInterval(function(){ 
               self.getRightImages()
             }, 4.5 * 1000);
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()

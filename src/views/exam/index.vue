@@ -96,8 +96,11 @@ export default {
       axios.get(this.server_url+"/exams").then (response => {
         this.listLoading = true
         if (response.status === 200 ) {
-          // if (response.data.returnData.result === "ok") {
-            var res = response.data.hits.hits
+          if (response.data.returnData.Result === "OK") {
+            var data = response.data.returnData.ESresult
+            data = JSON.parse(JSON.stringify(data))
+            var res = JSON.parse(data).hits.hits
+
             for (var i = 0; i < res.length; i ++) {
               let item = {};
               item.id = i
@@ -123,10 +126,10 @@ export default {
 
               this.list.push(item)
             }
-          // } else {
-          //   alert("API Connection Error!")
-          //   this.onCancel()
-          // }
+          } else {
+            alert("API Connection Error!")
+            this.onCancel()
+          }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
