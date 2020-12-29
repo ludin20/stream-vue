@@ -103,13 +103,14 @@ export default {
       var param = {
         "examCreate": "create"
       }
+      this.loading = true
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
             localStorage.setItem("examId", response.data.returnData.examId)
             this.rekognitionStart()
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
@@ -128,7 +129,7 @@ export default {
           if (response.data.returnData.Result === "OK") {
             this.$router.push({ path: '/check' })  
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
@@ -136,6 +137,7 @@ export default {
           this.removeProcess()
         }
       })
+      this.loading = false
     },
     removeProcess() {
       let param = {}

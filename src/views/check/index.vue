@@ -160,7 +160,7 @@ export default {
           if (response.data.returnData.Result === "OK") {
             this.makeJSONData(rekogData)
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
@@ -453,7 +453,7 @@ export default {
             var rekogData = response.data.returnData.final_data
             this.getVideoClip(this.startTime, this.endTime, rekogData)
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
@@ -479,7 +479,7 @@ export default {
             localStorage.setItem("examUrl", response.data.returnData.s3_url)
             this.getData(rekogData)
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {

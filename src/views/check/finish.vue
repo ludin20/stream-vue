@@ -124,7 +124,7 @@ export default {
             localStorage.clear()
             window.location.href = "/"
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
@@ -159,7 +159,7 @@ export default {
               self.checkMessage()
             }, 500);
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {

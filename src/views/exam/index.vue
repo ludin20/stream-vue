@@ -128,7 +128,7 @@ export default {
               this.list.push(item)
             }
           } else {
-            alert("API Connection Error! Please start exam again.")
+            alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
           }
         } else {
