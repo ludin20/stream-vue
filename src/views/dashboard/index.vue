@@ -227,6 +227,7 @@ export default {
             localStorage.setItem("email", response.data.returnData.email)
             localStorage.setItem("sessionId", response.data.returnData.sessionId)
             localStorage.setItem("streamProcessorName", response.data.returnData.streamProcessorName)
+            localStorage.setItem("collectionId", response.data.returnData.collectionId)
             var self = this
             this.timer = setInterval(function(){ 
               self.checkMessage()

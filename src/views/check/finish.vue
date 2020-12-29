@@ -113,7 +113,8 @@ export default {
         "streamProcessorName": localStorage.getItem("streamProcessorName"),
         "signalChannelName": localStorage.getItem("signalChannelName"),
         "streamARN": localStorage.getItem("streamARN"),
-        "signalChannelARN": localStorage.getItem("signalChannelARN")
+        "signalChannelARN": localStorage.getItem("signalChannelARN"),
+        "collectionId": localStorage.getItem("collectionId")
       }
 
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
