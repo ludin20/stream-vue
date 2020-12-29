@@ -33,8 +33,9 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import { startMaster, stopMaster, getStreamStatusValue, getStream } from '@/utils/master'
-import { } from '@/config/config'
-
+import { SERVER_URL, SQS_MESSAGE_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
+import AWS from 'aws-sdk'
+import axios from 'axios'
 export default {
   name: 'Login',
   data() {
@@ -60,9 +61,14 @@ export default {
       }
     }
     return {
+      sessionId: localStorage.getItem("sessionId"),
       loading: false,
       passwordType: 'password',
       redirect: undefined,
+      server_url: SERVER_URL,
+      sqs_url: SQS_MESSAGE_URL,
+      secret_key: SECRET_KEY,
+      access_key_id: ACCESS_KEY_ID,
     }
   },
   watch: {
@@ -91,7 +97,105 @@ export default {
       })
     },
     handleStart() {
-      this.$router.push({ path: '/check' })  
+      this.examCreate()
+    },
+    examCreate() {
+      var param = {
+        "examCreate": "create"
+      }
+      axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            localStorage.setItem("examId", response.data.returnData.examId)
+            this.rekognitionStart()
+          } else {
+            alert("API Connection Error! Please start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+    },
+    rekognitionStart() {
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
+        if (response.status === 200) {
+          if (response.data.returnData.Result === "OK") {
+            this.$router.push({ path: '/check' })  
+          } else {
+            alert("API Connection Error! Please start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+    },
+    removeProcess() {
+      let param = {}
+
+      axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            this.removeSQSMessages()
+          } else {
+            console.log("Failed")
+          }
+        } else {
+          console.log("Failed")
+        }
+      })
+    },
+    removeSQSMessages() {
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+
+      // Create an SQS service object
+      var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
+      var queueURL = this.sqs_url
+
+      var params = {
+        AttributeNames: [
+            "SentTimestamp"
+        ],
+        MaxNumberOfMessages: 10,
+        MessageAttributeNames: [
+            "All"
+        ],
+        QueueUrl: queueURL,
+        VisibilityTimeout: 20,
+        WaitTimeSeconds: 0
+      }
+
+      var self = this
+      sqs.receiveMessage(params, function(err, data) {
+        if (err) {
+          console.log("Receive Error", err)
+        } else if (data.Messages) {
+          for (var i = 0; i < data.Messages.length; i ++) {
+            var deleteParams = {
+              QueueUrl: queueURL,
+              ReceiptHandle: data.Messages[i].ReceiptHandle
+            };
+            sqs.deleteMessage(deleteParams, function(err, data) {
+              if (err) {
+                console.log("Delete Error", err)
+              } else {
+                console.log("Message Deleted", data)
+              }
+            })
+          }
+          self.onCancel()
+        }
+      })
     },
     onStatsReport(report) {
       // TODO: Publish stats

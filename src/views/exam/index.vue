@@ -62,12 +62,13 @@
 <script>
 import axios from 'axios'
 import {} from '@/utils/master'
-import { SERVER_URL } from '@/config/config'
+import { SERVER_URL, SQS_MESSAGE_URL } from '@/config/config'
 import moment from 'moment'
-
+import AWS from 'aws-sdk'
 export default {
   data() {
     return {
+      sqs_url: SQS_MESSAGE_URL,
       server_url: SERVER_URL,
       form: {
         searchKey: ''
@@ -101,8 +102,6 @@ export default {
             data = JSON.parse(JSON.stringify(data))
             var res = JSON.parse(data).hits.hits
 
-
-            console.log(res)
             for (var i = 0; i < res.length; i ++) {
               let item = {};
               item.id = i
@@ -129,13 +128,11 @@ export default {
               this.list.push(item)
             }
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
         this.listLoading = false
@@ -172,12 +169,57 @@ export default {
       axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
-            console.log("Success")
+            this.removeSQSMessages()
           } else {
             console.log("Failed")
           }
         } else {
           console.log("Failed")
+        }
+      })
+    },
+    removeSQSMessages() {
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+
+      // Create an SQS service object
+      var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
+      var queueURL = this.sqs_url
+
+      var params = {
+        AttributeNames: [
+            "SentTimestamp"
+        ],
+        MaxNumberOfMessages: 10,
+        MessageAttributeNames: [
+            "All"
+        ],
+        QueueUrl: queueURL,
+        VisibilityTimeout: 20,
+        WaitTimeSeconds: 0
+      }
+
+      var self = this
+      sqs.receiveMessage(params, function(err, data) {
+        if (err) {
+          console.log("Receive Error", err)
+        } else if (data.Messages) {
+          for (var i = 0; i < data.Messages.length; i ++) {
+            var deleteParams = {
+              QueueUrl: queueURL,
+              ReceiptHandle: data.Messages[i].ReceiptHandle
+            };
+            sqs.deleteMessage(deleteParams, function(err, data) {
+              if (err) {
+                console.log("Delete Error", err)
+              } else {
+                console.log("Message Deleted", data)
+              }
+            })
+          }
+          self.onCancel()
         }
       })
     }

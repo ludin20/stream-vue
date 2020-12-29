@@ -56,9 +56,9 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import { stopMaster, getStreamStatusValue, getStream } from '@/utils/master'
-import { SERVER_URL } from '@/config/config'
-import axios from 'axios';
-
+import { SERVER_URL, SQS_MESSAGE_URL } from '@/config/config'
+import axios from 'axios'
+import AWS from 'aws-sdk'
 export default {
   name: 'Login',
   data() {
@@ -84,6 +84,7 @@ export default {
       }
     }
     return {
+      sqs_url: SQS_MESSAGE_URL,
       server_url: SERVER_URL,
       loading: false,
       channelName: 'eriks',
@@ -123,13 +124,11 @@ export default {
             localStorage.clear()
             window.location.href = "/"
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
       })
@@ -160,13 +159,11 @@ export default {
               self.checkMessage()
             }, 500);
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
       })
@@ -195,12 +192,57 @@ export default {
       axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
-            console.log("Success")
+            this.removeSQSMessages()
           } else {
             console.log("Failed")
           }
         } else {
           console.log("Failed")
+        }
+      })
+    },
+    removeSQSMessages() {
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+
+      // Create an SQS service object
+      var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
+      var queueURL = this.sqs_url
+
+      var params = {
+        AttributeNames: [
+            "SentTimestamp"
+        ],
+        MaxNumberOfMessages: 10,
+        MessageAttributeNames: [
+            "All"
+        ],
+        QueueUrl: queueURL,
+        VisibilityTimeout: 20,
+        WaitTimeSeconds: 0
+      }
+
+      var self = this
+      sqs.receiveMessage(params, function(err, data) {
+        if (err) {
+          console.log("Receive Error", err)
+        } else if (data.Messages) {
+          for (var i = 0; i < data.Messages.length; i ++) {
+            var deleteParams = {
+              QueueUrl: queueURL,
+              ReceiptHandle: data.Messages[i].ReceiptHandle
+            };
+            sqs.deleteMessage(deleteParams, function(err, data) {
+              if (err) {
+                console.log("Delete Error", err)
+              } else {
+                console.log("Message Deleted", data)
+              }
+            })
+          }
+          self.onCancel()
         }
       })
     }

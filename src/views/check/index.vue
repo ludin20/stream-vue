@@ -46,7 +46,7 @@
 <script>
 import axios from 'axios'
 import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize, stopMaster } from '@/utils/master'
-import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL, ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
+import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL, ACCESS_KEY_ID, SECRET_KEY, SQS_MESSAGE_URL } from '@/config/config'
 import AWS from 'aws-sdk'
 export default {
   data() {
@@ -71,6 +71,7 @@ export default {
       resultSaving: false,
       startTime: '',
       endTime: '',
+      sqs_url: SQS_MESSAGE_URL,
       secret_key: SECRET_KEY,
       access_key_id: ACCESS_KEY_ID,
     }
@@ -89,7 +90,6 @@ export default {
       })
     },
     getRightImages() {
-      this.idx ++;
       this.isLoaded = false;
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcRight = response.request.responseURL
@@ -98,16 +98,14 @@ export default {
         this.mainImageSrcLeft = this.tempmainImageSrcLeft
 
         if (this.idx === 1) {
-          sendExamStartSignal()
-        } else if (this.idx === 2) {
           sendExamSecondSignal()
-        } else if (this.idx === 3) {
+        } else if (this.idx === 2) {
           sendExamThirdSignal()
-        } else if (this.idx === 4) {
+        } else if (this.idx === 3) {
           sendExamFourthSignal()
-        } else if (this.idx === 5) {
+        } else if (this.idx === 4) {
           sendExamFifthSignal()
-        } else if (this.idx === 6) {
+        } else if (this.idx === 5) {
           sendExamFinishSignal()
 
           clearInterval(this.timerLeft)
@@ -115,6 +113,8 @@ export default {
           this.examFinish();
         }
       })
+      
+      this.idx ++;
     },
     onLoaded() {
       this.isLoaded = true;
@@ -160,13 +160,11 @@ export default {
           if (response.data.returnData.Result === "OK") {
             this.makeJSONData(rekogData)
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
       });
@@ -455,13 +453,11 @@ export default {
             var rekogData = response.data.returnData.final_data
             this.getVideoClip(this.startTime, this.endTime, rekogData)
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
       })
@@ -483,65 +479,25 @@ export default {
             localStorage.setItem("examUrl", response.data.returnData.s3_url)
             this.getData(rekogData)
           } else {
-            alert("API Connection Error!")
-            this.onCancel()
+            alert("API Connection Error! Please start exam again.")
             this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
-          this.onCancel()
           this.removeProcess()
         }
       });
     },
-    examStart() {
-      var param = {
-        "examCreate": "create"
-      }
-      axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
-        if (response.status === 200 ) {
-          if (response.data.returnData.Result === "OK") {
-            localStorage.setItem("examId", response.data.returnData.examId)
-            this.rekognitionStart()
-          } else {
-            alert("API Connection Error!")
-            this.onCancel()
-            this.removeProcess()
-          }
-        } else {
-          alert(response.data.userMessage)
-          this.onCancel()
-          this.removeProcess()
-        }
-      })
-    },
-    rekognitionStart() {
-      var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName")
-      }
+    shuttleImage() {
+      sendExamStartSignal()
+      var self = this
+      this.timerLeft = setInterval(function(){ 
+        self.getLeftImages()
+      }, 4.2 * 1000);
 
-      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
-        if (response.status === 200) {
-          if (response.data.returnData.Result === "OK") {
-            let self = this;
-            self.timerLeft = setInterval(function(){ 
-              self.getLeftImages()
-            }, 4.5 * 1000);
-
-            self.timerRight = setInterval(function(){ 
-              self.getRightImages()
-            }, 4.5 * 1000);
-          } else {
-            alert("API Connection Error!")
-            this.onCancel()
-            this.removeProcess()
-          }
-        } else {
-          alert(response.data.userMessage)
-          this.onCancel()
-          this.removeProcess()
-        }
-      })
+      this.timerRight = setInterval(function(){ 
+        self.getRightImages()
+      }, 4.2 * 1000);
     },
     removeProcess() {
       let param = {}
@@ -549,12 +505,57 @@ export default {
       axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
-            console.log("Success")
+            this.removeSQSMessages()
           } else {
             console.log("Failed")
           }
         } else {
           console.log("Failed")
+        }
+      })
+    },
+    removeSQSMessages() {
+      AWS.config = new AWS.Config()
+      AWS.config.accessKeyId = this.access_key_id
+      AWS.config.secretAccessKey = this.secret_key
+      AWS.config.region = "us-east-1";
+
+      // Create an SQS service object
+      var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
+      var queueURL = this.sqs_url
+
+      var params = {
+        AttributeNames: [
+            "SentTimestamp"
+        ],
+        MaxNumberOfMessages: 10,
+        MessageAttributeNames: [
+            "All"
+        ],
+        QueueUrl: queueURL,
+        VisibilityTimeout: 20,
+        WaitTimeSeconds: 0
+      }
+
+      var self = this
+      sqs.receiveMessage(params, function(err, data) {
+        if (err) {
+          console.log("Receive Error", err)
+        } else if (data.Messages) {
+          for (var i = 0; i < data.Messages.length; i ++) {
+            var deleteParams = {
+              QueueUrl: queueURL,
+              ReceiptHandle: data.Messages[i].ReceiptHandle
+            };
+            sqs.deleteMessage(deleteParams, function(err, data) {
+              if (err) {
+                console.log("Delete Error", err)
+              } else {
+                console.log("Message Deleted", data)
+              }
+            })
+          }
+          self.onCancel()
         }
       })
     }
@@ -563,7 +564,7 @@ export default {
   mounted: function () {
   },
   created() {
-    this.examStart()
+    this.shuttleImage()
   }
 }
 </script>
