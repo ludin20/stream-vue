@@ -131,10 +131,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
         this.listLoading = false
       });
@@ -163,6 +165,21 @@ export default {
     },
     search(e) {
       
+    },
+    removeProcess() {
+      let param = {}
+
+      axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            console.log("Success")
+          } else {
+            console.log("Failed")
+          }
+        } else {
+          console.log("Failed")
+        }
+      })
     }
   },
   

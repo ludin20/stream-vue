@@ -193,10 +193,12 @@ export default {
                   this.createSession()
                 } else {
                   alert("API Connection Error!")
+                  this.removeProcess()
                   this.onCancel()
                 }
               } else {
                 alert(response.data.userMessage)
+                this.removeProcess()
                 this.onCancel()
               }
             })
@@ -234,9 +236,13 @@ export default {
             }, 500);
           } else {
             alert("API Connection Error!")
+            this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
+          this.onCancel()
+          this.removeProcess()
         }
       })
     },
@@ -273,101 +279,23 @@ export default {
         sessionToken: null
       }
     },
-    makeJSONData() {
-      var noFaceData = [], oneFaceData = [], moreFaceData = []
-      var startTime = "1608732788440"
+    removeProcess() {
+      let param = {}
 
-      var result = [ 
-        {PK: "1608732795952", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732798955", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732794955", FrameOffsetInSeconds: "0", DetectedFaces: "0"},
-        {PK: "1608732799959", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732807947", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732797949", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732805950", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732809953", FrameOffsetInSeconds: "1", DetectedFaces: "0"},
-        {PK: "1608732791946", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732801953", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732792956", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732793939", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732789948", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732808951", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732790942", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732800951", FrameOffsetInSeconds: "0", DetectedFaces: "0"},
-        {PK: "1608732803952", FrameOffsetInSeconds: "0", DetectedFaces: "0"},
-        {PK: "1608732796950", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732806951", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732804942", FrameOffsetInSeconds: "0", DetectedFaces: "1"},
-        {PK: "1608732802945", FrameOffsetInSeconds: "0", DetectedFaces: "1"}
-      ]
-
-      result.sort((a, b) => (a.PK > b.PK) ? 1 : -1)
-      
-      var tcout = '', tcin = result[0].PK
-      var flag = 1
-      var tArray = [], eArray = []
-      for (var i = 0; i < result.length; i ++) {
-        if(result[i + 1]) {
-          if (result[i].DetectedFaces === result[i + 1].DetectedFaces) {
-
+      axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            console.log("Success")
           } else {
-            flag++
-            tcout = result[i].PK
-            eArray.push({'tcin': tcin, 'tcout': tcout, "tclevel": 1})
-            if(result[i].DetectedFaces === '0')
-              noFaceData.push(eArray) 
-            else if(result[i].DetectedFaces === '1')
-              oneFaceData.push(eArray)
-            else
-              moreFaceData.push(eArray)
-            eArray = []
-            tcin = result[i + 1].PK
-            tcout = ''
-          } 
-        } else {
-          if(flag === 1) {
-            eArray.push({'tcin': result[0].PK, 'tcout': result[i].PK, "tclevel": 1})
-          } else if (flag === 2) {
-            eArray.push({'tcin': tcin, 'tcout': result[i].PK, "tclevel": 1})
-          } else {
-            eArray.push({'tcin': result[i].PK, 'tcout': result[i].PK, "tclevel": 1})
+            console.log("Failed")
           }
-          if(result[i].DetectedFaces === '0')
-            noFaceData.push(eArray)
-          else if(result[i].DetectedFaces === '1')
-            oneFaceData.push(eArray)
-          else
-            moreFaceData.push(eArray)
+        } else {
+          console.log("Failed")
         }
-      }
-
-      console.log(result)
-      console.log(noFaceData)
-      console.log(oneFaceData)
-      console.log(moreFaceData)
-    },
-
-    msToHMS( ms ) {
-      var seconds = ms / 1000;
-      var hours = parseInt( seconds / 3600 ) + ""; // 3,600 seconds in 1 hour
-      seconds = seconds % 3600; // seconds remaining after extracting hours
-      var minutes = parseInt( seconds / 60 ) + ""; // 60 seconds in 1 minute
-      seconds = seconds % 60 + "";
-
-      if (hours.length === 1) 
-        hours = "0" + hours
-
-      if (minutes.length === 1)
-        minutes = "0" + minutes
-
-      if (seconds.split(".")[0].length === 1)
-        seconds = "0" + seconds.split(".")[0] + "." + seconds.split(".")[1]
-
-      return hours+":"+minutes+":"+seconds
+      })
     }
   },
   mounted: function () {
-    // this.makeJSONData()
   },
   created() {}
 }

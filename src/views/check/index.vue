@@ -97,17 +97,17 @@ export default {
         this.mainImageSrcRight = this.tempmainImageSrcRight
         this.mainImageSrcLeft = this.tempmainImageSrcLeft
 
-        if (this.idx == 1) {
+        if (this.idx === 1) {
           sendExamStartSignal()
-        } else if (this.idx == 2) {
+        } else if (this.idx === 2) {
           sendExamSecondSignal()
-        } else if (this.idx == 3) {
+        } else if (this.idx === 3) {
           sendExamThirdSignal()
-        } else if (this.idx == 4) {
+        } else if (this.idx === 4) {
           sendExamFourthSignal()
-        } else if (this.idx == 5) {
+        } else if (this.idx === 5) {
           sendExamFifthSignal()
-        } else if (this.idx == 6) {
+        } else if (this.idx === 6) {
           sendExamFinishSignal()
 
           clearInterval(this.timerLeft)
@@ -162,10 +162,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       });
     },
@@ -455,10 +457,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       })
     },
@@ -481,10 +485,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       });
     },
@@ -500,10 +506,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       })
     },
@@ -526,10 +534,27 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
+        }
+      })
+    },
+    removeProcess() {
+      let param = {}
+
+      axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            console.log("Success")
+          } else {
+            console.log("Failed")
+          }
+        } else {
+          console.log("Failed")
         }
       })
     }

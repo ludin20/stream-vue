@@ -105,7 +105,7 @@ export default {
   },
   methods: {
     async onCancel() {
-      if (localStorage.getItem("cameraStatus") == "on")
+      if (localStorage.getItem("cameraStatus") === "on")
         stopMaster()
       
       await this.$store.dispatch('user/logout')
@@ -125,10 +125,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       })
     },
@@ -160,10 +162,12 @@ export default {
           } else {
             alert("API Connection Error!")
             this.onCancel()
+            this.removeProcess()
           }
         } else {
           alert(response.data.userMessage)
           this.onCancel()
+          this.removeProcess()
         }
       })
     },
@@ -184,6 +188,21 @@ export default {
       } else {
         $('.datachannel').addClass('d-none')
       }
+    },
+    removeProcess() {
+      let param = {}
+
+      axios.post(this.server_url+'/deleteFailed', param, {}).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            console.log("Success")
+          } else {
+            console.log("Failed")
+          }
+        } else {
+          console.log("Failed")
+        }
+      })
     }
   },
   mounted: function () {
