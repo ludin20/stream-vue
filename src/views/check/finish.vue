@@ -84,6 +84,7 @@ export default {
       }
     }
     return {
+      sessionId: localStorage.getItem("sessionId"),
       sqs_url: SQS_MESSAGE_URL,
       server_url: SERVER_URL,
       loading: false,
