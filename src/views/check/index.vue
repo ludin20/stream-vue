@@ -489,7 +489,6 @@ export default {
       });
     },
     shuttleImage() {
-      sendExamStartSignal()
       var self = this
       this.timerLeft = setInterval(function(){ 
         self.getLeftImages()
@@ -564,6 +563,7 @@ export default {
   mounted: function () {
   },
   created() {
+    sendExamStartSignal()
     this.shuttleImage()
   }
 }
