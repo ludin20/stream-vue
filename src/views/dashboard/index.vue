@@ -202,7 +202,7 @@ export default {
               }
             })
           }).catch(() => {
-          });
+          })
         } else {
           return false
         }
@@ -212,7 +212,7 @@ export default {
       this.$store.dispatch('user/login', this.loginForm).then(() => {
         this.$router.push({ path: '/admin' }) 
       }).catch(() => {
-      });
+      })
     },
     createSession() {
       let param = {
@@ -232,7 +232,7 @@ export default {
             var self = this
             this.timer = setInterval(function(){ 
               self.checkMessage()
-            }, 500);
+            }, 500)
           } else {
             alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
@@ -295,7 +295,7 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
 
       // Create an SQS service object
       var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
@@ -323,7 +323,7 @@ export default {
             var deleteParams = {
               QueueUrl: queueURL,
               ReceiptHandle: data.Messages[i].ReceiptHandle
-            };
+            }
             sqs.deleteMessage(deleteParams, function(err, data) {
               if (err) {
                 console.log("Delete Error", err)

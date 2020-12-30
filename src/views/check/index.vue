@@ -90,7 +90,7 @@ export default {
       })
     },
     getRightImages() {
-      this.isLoaded = false;
+      this.isLoaded = false
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcRight = response.request.responseURL
 
@@ -110,21 +110,21 @@ export default {
 
           clearInterval(this.timerLeft)
           clearInterval(this.timerRight)
-          this.examFinish();
+          this.examFinish()
         }
       })
       
-      this.idx ++;
+      this.idx ++
     },
     onLoaded() {
-      this.isLoaded = true;
+      this.isLoaded = true
     },
     examFinish() {
-      this.resultSaving = true;
+      this.resultSaving = true
       var self = this
       this.timer = setInterval(function(){ 
         self.checkMessage()
-      }, 500);
+      }, 500)
     },
     checkMessage() {  
       var result = getStreamEndStatusValue()
@@ -167,7 +167,7 @@ export default {
           alert(response.data.userMessage)
           this.removeProcess()
         }
-      });
+      })
     },
     makeJSONData(rekogData) {
       // var data = JSON.parse(rekogData)
@@ -216,11 +216,11 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
       var s3 = new AWS.S3({
         apiVersion: '2006-03-01',
         params: {Bucket: "eyesdemo"}
-      });
+      })
 
       var self = this
       s3.upload({
@@ -233,7 +233,7 @@ export default {
         } else {
           self.uploadOneFaceJSONData(oneFaceData, moreFaceData)
         }
-      });
+      })
     },
     uploadOneFaceJSONData(oneFaceData, moreFaceData) {
       var dict = {
@@ -265,11 +265,11 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
       var s3 = new AWS.S3({
         apiVersion: '2006-03-01',
         params: {Bucket: "eyesdemo"}
-      });
+      })
 
       var self = this
       s3.upload({
@@ -282,7 +282,7 @@ export default {
         } else {
           self.uploadMoreFaceJSONData(moreFaceData)
         }
-      });
+      })
     },
     uploadMoreFaceJSONData(moreFaceData) {
       var dict = {
@@ -314,11 +314,11 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
       var s3 = new AWS.S3({
         apiVersion: '2006-03-01',
         params: {Bucket: "eyesdemo"}
-      });
+      })
 
       var self = this
       s3.upload({
@@ -334,7 +334,7 @@ export default {
           initialize()
           self.$router.push({ path: '/finish' })
         }
-      });
+      })
     },
     uploadTrialJSONData() {
       var dict = {
@@ -388,11 +388,11 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
       var s3 = new AWS.S3({
         apiVersion: '2006-03-01',
         params: {Bucket: "eyesdemo"}
-      });
+      })
 
       var self = this
       s3.upload({
@@ -407,18 +407,18 @@ export default {
           initialize()
           self.$router.push({ path: '/finish' })
         }
-      });
+      })
     },
     msToHMS( ms ) {
       var str = ''
       if (ms === 0) {
         str = "00:00:00"
       } else {
-        var seconds = ms / 1000;
-        var hours = parseInt( seconds / 3600 ) + "";
-        seconds = seconds % 3600;
-        var minutes = parseInt( seconds / 60 ) + "";
-        seconds = seconds % 60 + "";
+        var seconds = ms / 1000
+        var hours = parseInt( seconds / 3600 ) + ""
+        seconds = seconds % 3600
+        var minutes = parseInt( seconds / 60 ) + ""
+        seconds = seconds % 60 + ""
 
         if (hours.length === 1) 
           hours = "0" + hours
@@ -486,17 +486,17 @@ export default {
           alert(response.data.userMessage)
           this.removeProcess()
         }
-      });
+      })
     },
     shuttleImage() {
       var self = this
       this.timerLeft = setInterval(function(){ 
         self.getLeftImages()
-      }, 4.2 * 1000);
+      }, 4.2 * 1000)
 
       this.timerRight = setInterval(function(){ 
         self.getRightImages()
-      }, 4.2 * 1000);
+      }, 4.2 * 1000)
     },
     removeProcess() {
       let param = {}
@@ -517,7 +517,7 @@ export default {
       AWS.config = new AWS.Config()
       AWS.config.accessKeyId = this.access_key_id
       AWS.config.secretAccessKey = this.secret_key
-      AWS.config.region = "us-east-1";
+      AWS.config.region = "us-east-1"
 
       // Create an SQS service object
       var sqs = new AWS.SQS({apiVersion: '2012-11-05'})
@@ -545,7 +545,7 @@ export default {
             var deleteParams = {
               QueueUrl: queueURL,
               ReceiptHandle: data.Messages[i].ReceiptHandle
-            };
+            }
             sqs.deleteMessage(deleteParams, function(err, data) {
               if (err) {
                 console.log("Delete Error", err)

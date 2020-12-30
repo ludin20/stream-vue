@@ -113,7 +113,7 @@ export default {
           }
         }]
       }
-    });
+    })
   },
   created() {
     var obj = JSON.parse(localStorage.getItem("exam"))
