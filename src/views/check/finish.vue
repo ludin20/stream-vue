@@ -172,9 +172,47 @@ export default {
       var status = getStreamStatusValue()
       if (status) {
         clearInterval(this.timer)
-        this.loading = false 
-        this.$router.push({ path: '/check' })  
+        this.examCreate()        
       }
+    },
+    examCreate() {
+      var param = {
+        "examCreate": "create"
+      }
+      axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            localStorage.setItem("examId", response.data.returnData.examId)
+            this.rekognitionStart()
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+    },
+    rekognitionStart() {
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName")
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/start", param).then (response => {
+        if (response.status === 200) {
+          if (response.data.returnData.Result === "OK") {
+            this.$router.push({ path: '/check' })  
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+      this.loading = false
     },
     onStatsReport(report) {
       // TODO: Publish stats
