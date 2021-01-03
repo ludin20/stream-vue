@@ -82,9 +82,30 @@ export default {
   methods: {
     async onCancel() {
       stopMaster()
-      localStorage.clear()
       await this.$store.dispatch('user/logout')
-      window.location.href = "/"
+      
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "signalChannelARN": localStorage.getItem("signalChannelARN"),
+        "collectionId": localStorage.getItem("collectionId")
+      }
+
+      axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
+        if (response.status === 200) {
+          if (response.data.returnData.Result === "OK") {
+            localStorage.clear()
+            window.location.href = "/"
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
     },
     showPwd() {
       if (this.passwordType === 'password') {

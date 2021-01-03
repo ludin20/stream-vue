@@ -79,9 +79,30 @@ export default {
   methods: {
     async onCancel() {
       stopMaster()
-      localStorage.clear()
       await this.$store.dispatch('user/logout')
-      window.location.href = "/"
+      
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "signalChannelARN": localStorage.getItem("signalChannelARN"),
+        "collectionId": localStorage.getItem("collectionId")
+      }
+
+      axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
+        if (response.status === 200) {
+          if (response.data.returnData.Result === "OK") {
+            localStorage.clear()
+            window.location.href = "/"
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
     },
     
     getLeftImages() {
@@ -130,9 +151,9 @@ export default {
       var result = getStreamEndStatusValue()
       if (result) {
         clearInterval(this.timer)
-        var result = getTimeRange()
-        this.startTime = result.startTime
-        this.endTime = result.endTime
+        var timeData = getTimeRange()
+        this.startTime = timeData.startTime
+        this.endTime = timeData.endTime
         this.rekognitionStop()
       }
     },
@@ -224,7 +245,7 @@ export default {
 
       var self = this
       s3.upload({
-        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "noFaceData.json",
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + localStorage.getItem("examId") + "noFaceData.json",
         Body: jsonFileContent,
         ACL: 'public-read'
         }, function(err, data) {
@@ -273,7 +294,7 @@ export default {
 
       var self = this
       s3.upload({
-        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "oneFaceData.json",
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + localStorage.getItem("examId") + "oneFaceData.json",
         Body: jsonFileContent,
         ACL: 'public-read'
         }, function(err, data) {
@@ -322,7 +343,7 @@ export default {
 
       var self = this
       s3.upload({
-        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "moreFaceData.json",
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + localStorage.getItem("examId") + "moreFaceData.json",
         Body: jsonFileContent,
         ACL: 'public-read'
         }, function(err, data) {
@@ -396,7 +417,7 @@ export default {
 
       var self = this
       s3.upload({
-        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + "trialData.json",
+        Key: "examclips/" + localStorage.getItem("email") + "/" + localStorage.getItem("sessionId") + "/" + localStorage.getItem("examId") + "trialData.json",
         Body: jsonFileContent,
         ACL: 'public-read'
         }, function(err, data) {
@@ -435,6 +456,7 @@ export default {
       return str
     },
     rekognitionStop() {
+      console.log(this.startTime, this.endTime)
       var param = {
         "streamProcessorName": localStorage.getItem("streamProcessorName"),
         "StartTimestamp" : this.startTime,
@@ -488,15 +510,15 @@ export default {
         }
       })
     },
-    shuttleImage() {
+    shuffleImage() {
       var self = this
       this.timerLeft = setInterval(function(){ 
         self.getLeftImages()
-      }, 4.2 * 1000)
+      }, 4000)
 
       this.timerRight = setInterval(function(){ 
         self.getRightImages()
-      }, 4.2 * 1000)
+      }, 4000)
     },
     removeProcess() {
       let param = {}
@@ -564,7 +586,7 @@ export default {
   },
   created() {
     sendExamStartSignal()
-    this.shuttleImage()
+    this.shuffleImage()
   }
 }
 </script>
