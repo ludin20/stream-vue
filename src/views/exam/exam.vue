@@ -74,10 +74,10 @@ export default {
       src: this.form.s3_url,
       plugins: {
         dataServices: [
-          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'trialData.json',
-          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'noFaceData.json',
-          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'oneFaceData.json',
-          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + 'moreFaceData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + this.form.examId + 'trialData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + this.form.examId + 'noFaceData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + this.form.examId + 'oneFaceData.json',
+          'https://eyesdemo.s3.amazonaws.com/' + 'examclips/' + this.form.sessionEmail + '/' + this.form.sessionId + '/' + this.form.examId + 'moreFaceData.json',
         ],
         list: [{
           'className': 'fr.ina.amalia.player.plugins.TimelinePlugin',
