@@ -106,6 +106,9 @@ export default {
     },
     
     getLeftImages() {
+      if (this.idx === 0)
+        sendExamStartSignal()
+
       axios.get('https://picsum.photos/400').then (response => {
         this.tempmainImageSrcLeft = response.request.responseURL
       })
@@ -113,35 +116,39 @@ export default {
     getRightImages() {
       this.isLoaded = false
       axios.get('https://picsum.photos/400').then (response => {
+        console.log(this.idx, "--------")
         this.tempmainImageSrcRight = response.request.responseURL
 
         this.mainImageSrcRight = this.tempmainImageSrcRight
         this.mainImageSrcLeft = this.tempmainImageSrcLeft
 
-        if (this.idx === 1) {
+        if (this.idx === 0) {
           sendExamSecondSignal()
-        } else if (this.idx === 2) {
+        } else if (this.idx === 1) {
           sendExamThirdSignal()
-        } else if (this.idx === 3) {
+        } else if (this.idx === 2) {
           sendExamFourthSignal()
-        } else if (this.idx === 4) {
+        } else if (this.idx === 3) {
           sendExamFifthSignal()
-        } else if (this.idx === 5) {
-          sendExamFinishSignal()
+        } else if (this.idx === 4) {
+          // sendExamFinishSignal()
 
           clearInterval(this.timerLeft)
           clearInterval(this.timerRight)
           this.examFinish()
         }
-      })
       
-      this.idx ++
+        this.idx ++
+      })
     },
     onLoaded() {
       this.isLoaded = true
     },
     examFinish() {
       this.resultSaving = true
+
+      sendExamFinishSignal()
+
       var self = this
       this.timer = setInterval(function(){ 
         self.checkMessage()
@@ -514,11 +521,11 @@ export default {
       var self = this
       this.timerLeft = setInterval(function(){ 
         self.getLeftImages()
-      }, 4000)
+      }, 4500)
 
       this.timerRight = setInterval(function(){ 
         self.getRightImages()
-      }, 4000)
+      }, 4500)
     },
     removeProcess() {
       let param = {}
@@ -585,7 +592,6 @@ export default {
   mounted: function () {
   },
   created() {
-    sendExamStartSignal()
     this.shuffleImage()
   }
 }

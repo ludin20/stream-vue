@@ -132,6 +132,7 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
         }
 
         if (offer.type == "streamEnd") {
+            console.log(offer, "++++++++++")
             isStreamEnd = true
             startTime = offer.startTime
             secondTime = offer.secondTime
@@ -289,6 +290,7 @@ export function getStreamEndStatusValue() {
 }
 
 export function sendExamStartSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examStart",
         toJSON() {
@@ -299,6 +301,7 @@ export function sendExamStartSignal() {
 }
 
 export function sendExamSecondSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examSecond",
         toJSON() {
@@ -309,6 +312,7 @@ export function sendExamSecondSignal() {
 }
 
 export function sendExamThirdSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examThird",
         toJSON() {
@@ -319,6 +323,7 @@ export function sendExamThirdSignal() {
 }
 
 export function sendExamFourthSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examFourth",
         toJSON() {
@@ -329,6 +334,7 @@ export function sendExamFourthSignal() {
 }
 
 export function sendExamFifthSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examFifth",
         toJSON() {
@@ -339,6 +345,7 @@ export function sendExamFifthSignal() {
 }
 
 export function sendExamFinishSignal() {
+    console.log(new Date().getTime());
     var message = {
         type: "examFinish",
         toJSON() {

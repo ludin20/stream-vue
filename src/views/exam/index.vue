@@ -101,7 +101,7 @@ export default {
             var data = response.data.returnData.ESresult
             data = JSON.parse(JSON.stringify(data))
             var res = JSON.parse(data).hits.hits
-
+console.log(res)
             for (var i = 0; i < res.length; i ++) {
               let item = {}
               item.id = i
