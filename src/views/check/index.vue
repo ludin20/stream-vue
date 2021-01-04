@@ -86,7 +86,8 @@ export default {
         "signalChannelName": localStorage.getItem("signalChannelName"),
         "streamARN": localStorage.getItem("streamARN"),
         "signalChannelARN": localStorage.getItem("signalChannelARN"),
-        "collectionId": localStorage.getItem("collectionId")
+        "collectionId": localStorage.getItem("collectionId"),
+        "datastreamARN": localStorage.getItem("datastreamARN")
       }
 
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
@@ -104,7 +105,10 @@ export default {
         }
       })
     },
-    
+    goDashboard() {
+      localStorage.clear()
+      window.location.href = "/"
+    },
     getLeftImages() {
       if (this.idx === 0)
         sendExamStartSignal()
@@ -116,7 +120,6 @@ export default {
     getRightImages() {
       this.isLoaded = false
       axios.get('https://picsum.photos/400').then (response => {
-        console.log(this.idx, "--------")
         this.tempmainImageSrcRight = response.request.responseURL
 
         this.mainImageSrcRight = this.tempmainImageSrcRight
@@ -131,11 +134,10 @@ export default {
         } else if (this.idx === 3) {
           sendExamFifthSignal()
         } else if (this.idx === 4) {
-          // sendExamFinishSignal()
-
-          clearInterval(this.timerLeft)
-          clearInterval(this.timerRight)
-          this.examFinish()
+          var self = this
+          setTimeout(function(){ 
+            self.examEnd()
+          }, 2000);
         }
       
         this.idx ++
@@ -144,10 +146,15 @@ export default {
     onLoaded() {
       this.isLoaded = true
     },
+    examEnd() {
+      sendExamFinishSignal()
+
+      clearInterval(this.timerLeft)
+      clearInterval(this.timerRight)
+      this.examFinish()
+    },
     examFinish() {
       this.resultSaving = true
-
-      sendExamFinishSignal()
 
       var self = this
       this.timer = setInterval(function(){ 
@@ -159,8 +166,8 @@ export default {
       if (result) {
         clearInterval(this.timer)
         var timeData = getTimeRange()
-        this.startTime = timeData.startTime
-        this.endTime = timeData.endTime
+        this.startTime = parseInt(timeData.startTime/1000)*1000
+        this.endTime = parseInt(timeData.endTime/1000)*1000 + 1000
         this.rekognitionStop()
       }
     },
@@ -173,6 +180,8 @@ export default {
         this.trials.push(this.trial)
         this.trial = {}
       }
+      result[0] = parseInt(result[0]/1000)*1000
+      result[5] = parseInt(result[5]/1000)*1000 + 1000
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
         "s3_url": localStorage.getItem("examUrl"),
@@ -463,7 +472,6 @@ export default {
       return str
     },
     rekognitionStop() {
-      console.log(this.startTime, this.endTime)
       var param = {
         "streamProcessorName": localStorage.getItem("streamProcessorName"),
         "StartTimestamp" : this.startTime,
@@ -473,7 +481,8 @@ export default {
         "streamName": localStorage.getItem("streamName"),
         "signalChannelName": localStorage.getItem("signalChannelName"),
         "streamARN": localStorage.getItem("streamARN"),
-        "signalChannelARN": localStorage.getItem("signalChannelARN")
+        "signalChannelARN": localStorage.getItem("signalChannelARN"),
+        "datastreamARN": localStorage.getItem("datastreamARN")
       }
 
       axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
@@ -521,11 +530,11 @@ export default {
       var self = this
       this.timerLeft = setInterval(function(){ 
         self.getLeftImages()
-      }, 4500)
+      }, 4000)
 
       this.timerRight = setInterval(function(){ 
         self.getRightImages()
-      }, 4500)
+      }, 4000)
     },
     removeProcess() {
       let param = {}
@@ -583,7 +592,7 @@ export default {
               }
             })
           }
-          self.onCancel()
+          self.goDashboard()
         }
       })
     }

@@ -89,7 +89,8 @@ export default {
         "signalChannelName": localStorage.getItem("signalChannelName"),
         "streamARN": localStorage.getItem("streamARN"),
         "signalChannelARN": localStorage.getItem("signalChannelARN"),
-        "collectionId": localStorage.getItem("collectionId")
+        "collectionId": localStorage.getItem("collectionId"),
+        "datastreamARN": localStorage.getItem("datastreamARN")
       }
 
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/rekog", param).then (response => {
@@ -106,6 +107,10 @@ export default {
           this.removeProcess()
         }
       })
+    },
+    goDashboard() {
+      localStorage.clear()
+      window.location.href = "/"
     },
     showPwd() {
       if (this.passwordType === 'password') {
@@ -216,7 +221,7 @@ export default {
               }
             })
           }
-          self.onCancel()
+          self.goDashboard()
         }
       })
     },

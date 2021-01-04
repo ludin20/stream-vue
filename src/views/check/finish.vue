@@ -134,6 +134,10 @@ export default {
         }
       })
     },
+    goDashboard() {
+      localStorage.clear()
+      window.location.href = "/"
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -281,7 +285,7 @@ export default {
               }
             })
           }
-          self.onCancel()
+          self.goDashboard()
         }
       })
     }
