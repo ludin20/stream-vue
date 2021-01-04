@@ -89,6 +89,10 @@ export default {
       window.location.href = "/"
     },
     goDetail(id) {
+      if (this.list[id].s3_url === "" || this.list[id].sessionEmail === "" || this.list[id].sessionId === "" || this.list[id].startTime === "" || this.list[id].examId === "" || this.list[id].timingData.examStart === "" || this.list[id].timingData.examEnd === "") {
+        alert("This exam wan't complete successfully")
+        return
+      }
       localStorage.setItem("exam", JSON.stringify(this.list[id]))
       var id = id
       this.$router.push({ path: '/admin/'+id })
@@ -112,18 +116,24 @@ console.log(res)
               item.hasVideo = res[i]._source.s3_url ? true : false
               item.s3_url = res[i]._source.s3_url ? res[i]._source.s3_url.S : ""
               item.timingData = {}
-              item.timingData.examStart = res[i]._source.timingData.M.examStart.N
-              item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
+              if (res[i]._source.timingData) {
+                item.timingData.examStart = res[i]._source.timingData.M.examStart.N
+                item.timingData.examEnd = res[i]._source.timingData.M.examEnd.N
 
-              for (var j = 0; j < res[i]._source.timingData.M.trials.L.length; j ++) {
-                this.trial.trialStart = res[i]._source.timingData.M.trials.L[j].M.trialStart.N
-                this.trial.trialEnd = res[i]._source.timingData.M.trials.L[j].M.trialEnd.N
+                for (var j = 0; j < res[i]._source.timingData.M.trials.L.length; j ++) {
+                  this.trial.trialStart = res[i]._source.timingData.M.trials.L[j].M.trialStart.N
+                  this.trial.trialEnd = res[i]._source.timingData.M.trials.L[j].M.trialEnd.N
 
-                this.trials.push(this.trial)
-                this.trial = {}
+                  this.trials.push(this.trial)
+                  this.trial = {}
+                }
+                item.timingData.trials = this.trials
+                this.trials = []
+              } else {
+                item.timingData.examStart = ""
+                item.timingData.examEnd = ""
+                item.timingData.trials = []
               }
-              item.timingData.trials = this.trials
-              this.trials = []
 
               this.list.push(item)
             }

@@ -137,7 +137,7 @@ export default {
           var self = this
           setTimeout(function(){ 
             self.examEnd()
-          }, 2000);
+          }, 3000);
         }
       
         this.idx ++
@@ -167,7 +167,8 @@ export default {
         clearInterval(this.timer)
         var timeData = getTimeRange()
         this.startTime = parseInt(timeData.startTime/1000)*1000
-        this.endTime = parseInt(timeData.endTime/1000)*1000 + 1000
+        // this.endTime = parseInt(timeData.endTime/1000)*1000 + 1000
+        this.endTime = this.startTime + 20000
         this.rekognitionStop()
       }
     },
@@ -181,7 +182,8 @@ export default {
         this.trial = {}
       }
       result[0] = parseInt(result[0]/1000)*1000
-      result[5] = parseInt(result[5]/1000)*1000 + 1000
+      // result[5] = parseInt(result[5]/1000)*1000 + 1000
+      result[5] = result[0] + 20000
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
         "s3_url": localStorage.getItem("examUrl"),
