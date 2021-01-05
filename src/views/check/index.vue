@@ -56,8 +56,6 @@ export default {
       form: {},
       mainImageSrcLeft: '',
       mainImageSrcRight: '',
-      tempmainImageSrcLeft: '',
-      tempmainImageSrcRight: '',
       idx: 0,
       imageTimer: null,
       isLoaded: false,
@@ -112,10 +110,8 @@ export default {
       this.rekognitionStop(data.examTimes)
     },
     examFinish(examTimes) {
-      console.log(examTimes)
     },
     shuffleImage() {
-      console.log("bbb=+++++++ ");
       if (this.idx == 5 ){
         clearInterval(this.imageTimer)
       }
@@ -125,11 +121,9 @@ export default {
       if (this.idx != 6 ){
         var self = this;
         axios.get('https://picsum.photos/400').then (response => {
-          console.log("loadedLeft ");
           self.mainImageSrcLeft = response.request.responseURL
         })
         axios.get('https://picsum.photos/400').then (response => {
-          console.log("loadedRight ");
           self.mainImageSrcRight = response.request.responseURL
         })
 
@@ -139,7 +133,6 @@ export default {
     rekognitionStop(examTimes) {
       this.startTime = parseInt(examTimes[0]/1000)*1000 + 1000
       this.endTime = parseInt(examTimes[5]/1000)*1000 + 1000
-      console.log(this.startTime, this.endTime, "+++++++++++++++++++")
       var param = {
         "streamProcessorName": localStorage.getItem("streamProcessorName"),
         "StartTimestamp" : this.startTime,

@@ -34,7 +34,7 @@
             </el-col>
           </el-form-item>
 
-          <el-form-item style="margin-top: 80px">
+          <!-- <el-form-item style="margin-top: 80px">
             <span class="sub-title">Press START to begin the exam</span>
           </el-form-item>
           <el-form-item>
@@ -42,7 +42,7 @@
             <el-col :span="2">
               <el-button :loading="loading" type="primary" style="margin-top: 50px" @click.native.prevent="handleStart">Start</el-button>
             </el-col>
-          </el-form-item>
+          </el-form-item> -->
         </el-col>
         
         <el-col :span="2">.</el-col>
@@ -149,10 +149,11 @@ export default {
       axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId"), param).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
-            var self = this
-            this.timer = setInterval(function(){ 
-              self.checkMessage()
-            }, 500)
+            // var self = this
+            // this.timer = setInterval(function(){ 
+            //   self.checkMessage()
+            // }, 500)
+            this.examCreate()
           } else {
             alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
@@ -174,6 +175,7 @@ export default {
       var param = {
         "examCreate": "create"
       }
+      this.loading = true
       axios.post(this.server_url+'/session/'+this.sessionId+"/exams", param).then (response => {
         if (response.status === 200 ) {
           if (response.data.returnData.Result === "OK") {
