@@ -112,16 +112,6 @@ export default {
       localStorage.clear()
       window.location.href = "/"
     },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
-    },
     handleStart() {
       this.examCreate()
     },
@@ -165,6 +155,28 @@ export default {
       })
       this.loading = false
     },
+    // examCreate() {
+    //    var param = {
+    //     "sessionId": localStorage.getItem("sessionId"),
+    //     "streamProcessorName": localStorage.getItem("streamProcessorName")
+    //   }
+
+    //   axios.post(this.server_url+'/session/'+localStorage.getItem("sessionId")+"/startVideoSession", param).then (response => {
+    //     if (response.status === 200) {
+    //       if (response.data.returnData.Result === "OK") {
+    //         var examId = response.data.returnData.examId
+    //         localStorage.setItem("examId", examId)
+    //         this.$router.push({ path: '/check' }) 
+    //       } else {
+    //         alert("API Connection Error! Please wait and start exam again.")
+    //         this.removeProcess()
+    //       }
+    //     } else {
+    //       alert(response.data.userMessage)
+    //       this.removeProcess()
+    //     }
+    //   })
+    // },
     removeProcess() {
       let param = {}
 

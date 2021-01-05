@@ -84,7 +84,7 @@
 </template>
 <script>
 import { validUsername } from '@/utils/validate'
-import { startMaster, stopMaster, getStreamStatusValue } from '@/utils/master'
+import { startMaster, stopMaster } from '@/utils/master'
 import { SERVER_URL, STREAM_CONFIG_URL, ACCESS_KEY_ID, SECRET_KEY, SQS_MESSAGE_URL } from '@/config/config'
 import axios from 'axios'
 import AWS from 'aws-sdk'
@@ -150,22 +150,15 @@ export default {
       await this.$store.dispatch('user/logout')
       window.location.href = "/"
     },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
-    },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           localStorage.setItem("email", this.loginForm.email)
           this.$store.dispatch('user/login', this.loginForm).then(() => {
             this.loading = true
+            // var param = {
+            //   email: this.loginForm.email
+            // }
             axios.get(this.stream_config_url+'/streamConfig').then (response => {
               if (response.status === 200 ) {
                 if (response.data.returnData.Result === "OK") {
@@ -184,14 +177,9 @@ export default {
                   localStorage.setItem("streamARN", streamARN)
                   localStorage.setItem("signalChannelARN", signalChannelARN)
 
-                  const localView = document.getElementById('local-view')
-                  const remoteView = document.getElementById('remote-view')
-                  const formValues = this.getFormValues()
-                  startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
-                  })
-
-                  localStorage.setItem("cameraStatus", "on")
+                  
                   this.createSession()
+                  
                 } else {
                   alert("API Connection Error! Please wait and start exam again.")
                   this.removeProcess()
@@ -230,10 +218,17 @@ export default {
             localStorage.setItem("streamProcessorName", response.data.returnData.streamProcessorName)
             localStorage.setItem("collectionId", response.data.returnData.collectionId)
             localStorage.setItem("datastreamARN", response.data.returnData.datastreamARN)
+
+            const localView = document.getElementById('local-view')
+            const remoteView = document.getElementById('remote-view')
+            const formValues = this.getFormValues()
             var self = this
-            this.timer = setInterval(function(){ 
-              self.checkMessage()
-            }, 500)
+            startMaster(localView, remoteView, formValues, this.onStatsReport, event => {
+              if (event.type == "streamStart")
+                self.startKVSStreaming()
+            })
+
+            localStorage.setItem("cameraStatus", "on")
           } else {
             alert("API Connection Error! Please wait and start exam again.")
             this.removeProcess()
@@ -244,13 +239,9 @@ export default {
         }
       })
     },
-    checkMessage() {
-      var status = getStreamStatusValue()
-      if (status) {
-        clearInterval(this.timer)
-        this.loading = false 
-        this.$router.push({ path: '/camera' }) 
-      }
+    startKVSStreaming() {
+      this.loading = false 
+      this.$router.push({ path: '/camera' }) 
     },
     getRandomClientId() {
       return Math.random()

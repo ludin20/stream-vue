@@ -9,10 +9,8 @@ const master = {
 	remoteStreams: [],
 	peerConnectionStatsInterval: null,
 }
-
-var isStreamStart = false, isStreamEnd = false
+var onCheckEndMessage;
 var remoteSenderClientId = ""
-var startTime = 0, endTime = 0, secondTime = 0, thirdTime = 0, fourthTime = 0, fifthTime = 0
 var localStream = null
 export async function startMaster(localView, remoteView, formValues, onStatsReport, onRemoteDataMessage) {
     master.localView = localView
@@ -126,19 +124,14 @@ export async function startMaster(localView, remoteView, formValues, onStatsRepo
 
     master.signalingClient.on('sdpOffer', async (offer, remoteClientId) => {
         remoteSenderClientId = remoteClientId
-        if (offer.type == "streamStart") {
-            isStreamStart = true;
-            return;
-        }
 
-        if (offer.type == "streamEnd") {
-            isStreamEnd = true
-            startTime = offer.startTime
-            secondTime = offer.secondTime
-            thirdTime = offer.thirdTime
-            fourthTime = offer.fourthTime
-            fifthTime = offer.fifthTime
-            endTime = offer.endTime
+        if (offer.type == "streamStart") {
+            onRemoteDataMessage(offer);
+            return;
+        } else if (offer.type == "streamEnd") {
+            if (onCheckEndMessage)
+                onCheckEndMessage(offer);
+            
             return;
         }
 
@@ -280,104 +273,19 @@ export function sendMasterMessage(message) {
     })
 }
 
-export function getStreamStatusValue() {
-    return isStreamStart
-}
+export function sendExamSignal(idx, bEnd, EndMessage) {
+    onCheckEndMessage = EndMessage;
 
-export function getStreamEndStatusValue() {
-    return isStreamEnd
-}
-
-export function sendExamStartSignal() {
     var message = {
-        type: "examStart",
+        type: "exam",
+        idx : idx,
+        endStatus : bEnd,
         toJSON() {
             return this;
         }
     }
+    console.log(message);
     master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function sendExamSecondSignal() {
-    var message = {
-        type: "examSecond",
-        toJSON() {
-            return this;
-        }
-    }
-    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function sendExamThirdSignal() {
-    var message = {
-        type: "examThird",
-        toJSON() {
-            return this;
-        }
-    }
-    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function sendExamFourthSignal() {
-    var message = {
-        type: "examFourth",
-        toJSON() {
-            return this;
-        }
-    }
-    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function sendExamFifthSignal() {
-    var message = {
-        type: "examFifth",
-        toJSON() {
-            return this;
-        }
-    }
-    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function sendExamFinishSignal() {
-    var message = {
-        type: "examFinish",
-        toJSON() {
-            return this;
-        }
-    }
-    master.signalingClient.sendSdpOffer(message, remoteSenderClientId)
-}
-
-export function getTimeRange() {
-    var timeRange = {
-        startTime: startTime,
-        endTime: endTime
-    }
-    return timeRange
-}
-
-export function getStreamTimes() {
-    var result = [];
-    result[0] = startTime
-    result[1] = secondTime
-    result[2] = thirdTime
-    result[3] = fourthTime
-    result[4] = fifthTime
-    result[5] = endTime
-
-    return result
-}
-
-export function initialize() {
-    isStreamStart = false
-    isStreamEnd = false
-    remoteSenderClientId = ""
-    startTime = 0
-    endTime = 0
-    secondTime = 0
-    thirdTime = 0
-    fourthTime = 0
-    fifthTime = 0
 }
 
 export function getStream() {

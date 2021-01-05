@@ -45,35 +45,29 @@
 
 <script>
 import axios from 'axios'
-import { sendExamStartSignal, sendExamSecondSignal, sendExamThirdSignal, sendExamFourthSignal, sendExamFinishSignal, getTimeRange, sendExamFifthSignal, getStreamEndStatusValue, getStreamTimes, initialize, stopMaster } from '@/utils/master'
-import { SERVER_URL,  STREAM_CONFIG_URL, SESSION_URL, ACCESS_KEY_ID, SECRET_KEY, SQS_MESSAGE_URL } from '@/config/config'
+import { sendExamSignal, stopMaster } from '@/utils/master'
+import { SERVER_URL,  ACCESS_KEY_ID, SECRET_KEY } from '@/config/config'
 import AWS from 'aws-sdk'
 export default {
   data() {
     return {
       sessionId: localStorage.getItem("sessionId"),
       server_url: SERVER_URL,
-      stream_config_url: STREAM_CONFIG_URL,
-      session_url: SESSION_URL,
       form: {},
       mainImageSrcLeft: '',
       mainImageSrcRight: '',
       tempmainImageSrcLeft: '',
       tempmainImageSrcRight: '',
       idx: 0,
-      timerLeft: null,
-      timerRight: null,
-      timer: null,
-      times: [],
-      trials: [],
-      trial: {},
+      imageTimer: null,
       isLoaded: false,
       resultSaving: false,
-      startTime: '',
-      endTime: '',
-      sqs_url: SQS_MESSAGE_URL,
       secret_key: SECRET_KEY,
       access_key_id: ACCESS_KEY_ID,
+      startTime: '',
+      endTime: '',
+      trial: {},
+      trials: []
     }
   },
   methods: {
@@ -109,88 +103,111 @@ export default {
       localStorage.clear()
       window.location.href = "/"
     },
-    getLeftImages() {
-      if (this.idx === 0)
-        sendExamStartSignal()
-
-      axios.get('https://picsum.photos/400').then (response => {
-        this.tempmainImageSrcLeft = response.request.responseURL
-      })
-    },
-    getRightImages() {
-      this.isLoaded = false
-      axios.get('https://picsum.photos/400').then (response => {
-        this.tempmainImageSrcRight = response.request.responseURL
-
-        this.mainImageSrcRight = this.tempmainImageSrcRight
-        this.mainImageSrcLeft = this.tempmainImageSrcLeft
-
-        if (this.idx === 0) {
-          sendExamSecondSignal()
-        } else if (this.idx === 1) {
-          sendExamThirdSignal()
-        } else if (this.idx === 2) {
-          sendExamFourthSignal()
-        } else if (this.idx === 3) {
-          sendExamFifthSignal()
-        } else if (this.idx === 4) {
-          var self = this
-          setTimeout(function(){ 
-            self.examEnd()
-          }, 3000);
-        }
-      
-        this.idx ++
-      })
-    },
     onLoaded() {
       this.isLoaded = true
     },
-    examEnd() {
-      sendExamFinishSignal()
-
-      clearInterval(this.timerLeft)
-      clearInterval(this.timerRight)
-      this.examFinish()
-    },
-    examFinish() {
+    onEndMessage(data) {
+      // this.examFinish(data.examTimes)
       this.resultSaving = true
-
-      var self = this
-      this.timer = setInterval(function(){ 
-        self.checkMessage()
-      }, 500)
+      this.rekognitionStop(data.examTimes)
     },
-    checkMessage() {  
-      var result = getStreamEndStatusValue()
-      if (result) {
-        clearInterval(this.timer)
-        var timeData = getTimeRange()
-        this.startTime = parseInt(timeData.startTime/1000)*1000
-        // this.endTime = parseInt(timeData.endTime/1000)*1000 + 1000
-        this.endTime = this.startTime + 20000
-        this.rekognitionStop()
+    examFinish(examTimes) {
+      console.log(examTimes)
+    },
+    shuffleImage() {
+      console.log("bbb=+++++++ ");
+      if (this.idx == 5 ){
+        clearInterval(this.imageTimer)
+      }
+      sendExamSignal(this.idx , (this.idx == 5) , this.onEndMessage)
+      this.idx ++
+
+      if (this.idx != 6 ){
+        var self = this;
+        axios.get('https://picsum.photos/400').then (response => {
+          console.log("loadedLeft ");
+          self.mainImageSrcLeft = response.request.responseURL
+        })
+        axios.get('https://picsum.photos/400').then (response => {
+          console.log("loadedRight ");
+          self.mainImageSrcRight = response.request.responseURL
+        })
+
+        this.isLoaded = false
       }
     },
-    getData(rekogData) {
-      var result = getStreamTimes()
-      this.times = result
-      for (var i = 0; i < this.times.length - 1; i ++) {
-        this.trial.trialStart = this.times[i]
-        this.trial.trialEnd = this.times[i + 1]
+    rekognitionStop(examTimes) {
+      this.startTime = parseInt(examTimes[0]/1000)*1000 + 1000
+      this.endTime = parseInt(examTimes[5]/1000)*1000 + 1000
+      console.log(this.startTime, this.endTime, "+++++++++++++++++++")
+      var param = {
+        "streamProcessorName": localStorage.getItem("streamProcessorName"),
+        "StartTimestamp" : this.startTime,
+        "EndTimestamp" : this.endTime,
+        "sessionId": localStorage.getItem("sessionId"),
+        "examId": localStorage.getItem("examId"),
+        "streamName": localStorage.getItem("streamName"),
+        "signalChannelName": localStorage.getItem("signalChannelName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "signalChannelARN": localStorage.getItem("signalChannelARN"),
+        "datastreamARN": localStorage.getItem("datastreamARN")
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
+        if (response.status === 200) {
+          if (response.data.returnData.Result === "OK") {
+            var rekogData = response.data.returnData.final_data
+            this.getVideoClip(this.startTime, this.endTime, rekogData, examTimes)
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+    },
+    getVideoClip(startTime, endTime, rekogData, examTimes) {
+      let param = {
+        "streamName": localStorage.getItem("streamName"),
+        "streamARN": localStorage.getItem("streamARN"),
+        "sessionId": localStorage.getItem("sessionId"),
+        "examId": localStorage.getItem("examId"),
+        "StartTimestamp" : startTime,
+        "email": localStorage.getItem("email"),
+        "EndTimestamp" : endTime
+      }
+
+      axios.post(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
+        if (response.status === 200 ) {
+          if (response.data.returnData.Result === "OK") {
+            localStorage.setItem("examUrl", response.data.returnData.s3_url)
+            this.getData(rekogData, examTimes)
+          } else {
+            alert("API Connection Error! Please wait and start exam again.")
+            this.removeProcess()
+          }
+        } else {
+          alert(response.data.userMessage)
+          this.removeProcess()
+        }
+      })
+    },
+    getData(rekogData, examTimes) {
+      for (var i = 0; i < examTimes.length - 1; i ++) {
+        this.trial.trialStart = examTimes[i]
+        this.trial.trialEnd = examTimes[i + 1]
         this.trials.push(this.trial)
         this.trial = {}
       }
-      result[0] = parseInt(result[0]/1000)*1000
-      // result[5] = parseInt(result[5]/1000)*1000 + 1000
-      result[5] = result[0] + 20000
       let param = {
         "sessionId" : localStorage.getItem("sessionId"),
         "s3_url": localStorage.getItem("examUrl"),
         "email": localStorage.getItem("email"),
         "timingData" : {
-          "examStart" : result[0],
-          "examEnd" : result[5],
+          "examStart" : parseInt(examTimes[0]/1000)*1000 + 1000,
+          "examEnd" : parseInt(examTimes[5]/1000)*1000 + 1000,
           "trials" : this.trials
         }
       }
@@ -370,7 +387,6 @@ export default {
         } else {
           self.uploadTrialJSONData()
           clearInterval(self.timer)
-          initialize()
           self.$router.push({ path: '/finish' })
         }
       })
@@ -443,7 +459,6 @@ export default {
           console.log(err)
         } else {
           clearInterval(self.timer)
-          initialize()
           self.$router.push({ path: '/finish' })
         }
       })
@@ -472,71 +487,6 @@ export default {
       }
 
       return str
-    },
-    rekognitionStop() {
-      var param = {
-        "streamProcessorName": localStorage.getItem("streamProcessorName"),
-        "StartTimestamp" : this.startTime,
-        "EndTimestamp" : this.endTime,
-        "sessionId": localStorage.getItem("sessionId"),
-        "examId": localStorage.getItem("examId"),
-        "streamName": localStorage.getItem("streamName"),
-        "signalChannelName": localStorage.getItem("signalChannelName"),
-        "streamARN": localStorage.getItem("streamARN"),
-        "signalChannelARN": localStorage.getItem("signalChannelARN"),
-        "datastreamARN": localStorage.getItem("datastreamARN")
-      }
-
-      axios.post(this.server_url+'/session/'+this.sessionId+"/rekog/stop", param).then (response => {
-        if (response.status === 200) {
-          if (response.data.returnData.Result === "OK") {
-            var rekogData = response.data.returnData.final_data
-            this.getVideoClip(this.startTime, this.endTime, rekogData)
-          } else {
-            alert("API Connection Error! Please wait and start exam again.")
-            this.removeProcess()
-          }
-        } else {
-          alert(response.data.userMessage)
-          this.removeProcess()
-        }
-      })
-    },
-    getVideoClip(startTime, endTime, rekogData) {
-      let param = {
-        "streamName": localStorage.getItem("streamName"),
-        "streamARN": localStorage.getItem("streamARN"),
-        "sessionId": localStorage.getItem("sessionId"),
-        "examId": localStorage.getItem("examId"),
-        "StartTimestamp" : startTime,
-        "email": localStorage.getItem("email"),
-        "EndTimestamp" : endTime
-      }
-
-      axios.post(this.server_url+'/session/'+this.sessionId+"/exams/"+localStorage.getItem("examId"), param).then (response => {
-        if (response.status === 200 ) {
-          if (response.data.returnData.Result === "OK") {
-            localStorage.setItem("examUrl", response.data.returnData.s3_url)
-            this.getData(rekogData)
-          } else {
-            alert("API Connection Error! Please wait and start exam again.")
-            this.removeProcess()
-          }
-        } else {
-          alert(response.data.userMessage)
-          this.removeProcess()
-        }
-      })
-    },
-    shuffleImage() {
-      var self = this
-      this.timerLeft = setInterval(function(){ 
-        self.getLeftImages()
-      }, 4000)
-
-      this.timerRight = setInterval(function(){ 
-        self.getRightImages()
-      }, 4000)
     },
     removeProcess() {
       let param = {}
@@ -602,8 +552,12 @@ export default {
   
   mounted: function () {
   },
-  created() {
+  created()  {
+    var self = this
     this.shuffleImage()
+    this.imageTimer = setInterval(function(){ 
+      self.shuffleImage()
+    }, 4000)
   }
 }
 </script>

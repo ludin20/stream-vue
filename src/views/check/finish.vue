@@ -138,16 +138,6 @@ export default {
       localStorage.clear()
       window.location.href = "/"
     },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
-    },
     handleStart() {
       var param = {
         email: localStorage.getItem("email"),
