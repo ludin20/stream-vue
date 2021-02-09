@@ -177,7 +177,6 @@ export default {
                   localStorage.setItem("streamARN", streamARN)
                   localStorage.setItem("signalChannelARN", signalChannelARN)
 
-                  
                   this.createSession()
                   
                 } else {
